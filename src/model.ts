@@ -69,15 +69,17 @@ export class AergebraDoc {
     this.listeners.forEach((fn) => fn());
   }
 
+  // Every receipt notifies subscribers itself — a bare `doc.receipt(...)` (e.g. the station 11
+  // .ggb import summary) must be as visible to the UI as any other mutation, never a silent append.
   receipt(action: string, details: Record<string, unknown> = {}) {
     this.receipts.push(Object.freeze({ seq: ++this.seq, at: new Date().toISOString(), action, details }));
+    this.emit();
   }
 
   setTitle(title: string) {
     if (title === this.title) return;
     this.title = title;
     this.receipt("title", { title });
-    this.emit();
   }
 
   private mintName(type: AerType): string {
@@ -105,7 +107,6 @@ export class AergebraDoc {
     };
     this.objects.push(obj);
     this.receipt("create", { id: obj.id, type, name: obj.name, parents: obj.parents, coords: obj.coords });
-    this.emit();
     return obj;
   }
 
@@ -114,7 +115,6 @@ export class AergebraDoc {
     if (!obj || obj.type !== "point") return;
     obj.coords = [Number(coords[0].toFixed(4)), Number(coords[1].toFixed(4))];
     this.receipt("move", { id, coords: obj.coords });
-    this.emit();
   }
 
   setMeaning(id: string, meaning: string | null) {
@@ -122,7 +122,6 @@ export class AergebraDoc {
     if (!obj) return;
     obj.meaning = meaning;
     this.receipt("meaning", { id, meaning });
-    this.emit();
   }
 
   get(id: string): AerObject | undefined {
@@ -143,7 +142,6 @@ export class AergebraDoc {
     };
     this.groups.push(group);
     this.receipt("group", { id: group.id, name: group.name, members });
-    this.emit();
     return group;
   }
 
@@ -152,7 +150,6 @@ export class AergebraDoc {
     if (!g) return;
     g.meaning = meaning;
     this.receipt("meaning", { id, meaning });
-    this.emit();
   }
 
   // Station 8 — a frame is a derived bounding rectangle over a group: a projection, not a new
@@ -165,7 +162,6 @@ export class AergebraDoc {
     const frame: AerFrame = { id: `FRM${this.nextFrameId++}`, frameOf: groupId, createdAt: new Date().toISOString() };
     this.frames.push(frame);
     this.receipt("frame", { id: frame.id, frameOf: groupId });
-    this.emit();
     return frame;
   }
 
@@ -184,7 +180,6 @@ export class AergebraDoc {
     };
     this.images.push(image);
     this.receipt("image", { id: image.id, x: image.x, y: image.y, width: image.width, height: image.height });
-    this.emit();
     return image;
   }
 
@@ -194,7 +189,6 @@ export class AergebraDoc {
     image.x = x;
     image.y = y;
     this.receipt("move", { id, x, y });
-    this.emit();
   }
 
   /** Human/computer-readable definition — the algebra line for the Inspector. */
@@ -314,6 +308,5 @@ export class AergebraDoc {
     }
 
     this.receipt("load", { format: data.format, title: this.title, objects: this.objects.length });
-    this.emit();
   }
 }

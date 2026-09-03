@@ -5,6 +5,7 @@ import { AergebraDoc } from "./model";
 import { BoardView } from "./render";
 import { ToolController, TOOLS } from "./tools";
 import { Inspector } from "./inspector";
+import { importGgb } from "./ggbimport";
 
 const AUTOSAVE_KEY = "aergebra:autosave";
 
@@ -135,4 +136,21 @@ fileImportSvg.addEventListener("change", async () => {
   const width = 8;
   const height = width * svgAspect(text);
   doc.createImage(svgToDataUrl(text), { x: -width / 2, y: height / 2, width, height });
+});
+
+// Station 11 — real .ggb construction import: real points/segments/circles/polygons in the
+// Inspector, never a thumbnail. Unsupported elements are skipped and receipted, never invented.
+const fileImportGgb = document.getElementById("file-import-ggb") as HTMLInputElement;
+document.getElementById("btn-import-ggb")!.addEventListener("click", () => fileImportGgb.click());
+fileImportGgb.addEventListener("change", async () => {
+  const file = fileImportGgb.files?.[0];
+  fileImportGgb.value = "";
+  if (!file) return;
+  try {
+    const summary = await importGgb(doc, file);
+    const skippedNote = summary.skipped.length ? `; skipped ${summary.skipped.length} (see receipts)` : "";
+    status.textContent = `Imported ${file.name}: ${summary.imported.points} points, ${summary.imported.segments} segments, ${summary.imported.circles} circles, ${summary.imported.polygons} polygons${skippedNote}`;
+  } catch (err) {
+    alert(`Aergebra: could not import "${file.name}" — ${(err as Error).message}`);
+  }
 });
