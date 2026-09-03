@@ -3,8 +3,11 @@
 // render as headers with members nested (fully listed, individually selectable) beneath them.
 // Station 7 — meaning first-class: an inline editor sets/edits `meaning` on any object or group;
 // meaning is never required, never invented, and every change receipts via the model already.
+// Station 12 — a math input line above the list: Point/Segment/Circle/Polygon run the same tools
+// as the rail, typed; anything else evaluates via the Compute Engine. Errors show, never crash.
 import type { AergebraDoc, AerGroup } from "./model";
 import type { BoardView } from "./render";
+import { runMathLine } from "./mathcommands";
 
 export class Inspector {
   private root: HTMLElement;
@@ -21,11 +24,38 @@ export class Inspector {
   private renderShell() {
     this.root.innerHTML = `
       <h2>Algebra</h2>
+      <div class="mathline">
+        <math-field class="mathline-field"></math-field>
+        <button class="mathline-run">Run</button>
+      </div>
+      <div class="mathline-result"></div>
       <div class="actions"></div>
       <div class="objects"></div>
       <div class="receipts"></div>
     `;
+    this.wireMathLine();
     this.renderList();
+  }
+
+  private wireMathLine() {
+    const field = this.root.querySelector(".mathline-field") as HTMLElement & { value: string };
+    const runBtn = this.root.querySelector(".mathline-run")!;
+    const resultEl = this.root.querySelector(".mathline-result")!;
+
+    const run = () => {
+      const latex = field.value ?? "";
+      if (!latex.trim()) return;
+      const result = runMathLine(this.doc, latex);
+      resultEl.textContent = result.text;
+      resultEl.className = "mathline-result" + (result.isError ? " error" : "");
+      field.value = "";
+    };
+
+    // Tap-first (the Run button), Enter as a desktop bonus — never a required keyboard modifier.
+    runBtn.addEventListener("click", run);
+    field.addEventListener("keydown", (e) => {
+      if ((e as KeyboardEvent).key === "Enter") { e.preventDefault(); run(); }
+    });
   }
 
   // A plain tap toggles the row in/out of selection — no modifier key required, ever.

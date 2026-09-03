@@ -1,6 +1,10 @@
 // Aergebra — built to SCU7, station by station. Reuse don't lose.
 import "./jsxgraph.css";
 import "./style.css";
+import { MathfieldElement } from "mathlive"; // registers the <math-field> custom element
+// Vite's dep pre-bundling breaks MathLive's relative font lookup; the fonts are copied to
+// public/fonts (from node_modules/mathlive/fonts) and served from the site root instead.
+MathfieldElement.fontsDirectory = "/fonts";
 import { AergebraDoc } from "./model";
 import { BoardView } from "./render";
 import { ToolController, TOOLS } from "./tools";

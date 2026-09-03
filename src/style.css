@@ -34,6 +34,12 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -app
 
 #inspector { width: clamp(180px, 40vw, 320px); flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 #inspector h2 { margin: 0; padding: 12px 14px 8px; font-size: 14px; }
+/* Station 12 — the math line: Point/Segment/Circle/Polygon typed, or free math via Compute Engine. */
+#inspector .mathline { display: flex; gap: 6px; padding: 0 8px 8px; align-items: stretch; }
+#inspector .mathline-field { flex: 1; min-width: 0; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; --contains-highlight-background-color: #7b7ff255; }
+#inspector .mathline-run { flex-shrink: 0; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 0 14px; min-height: 40px; cursor: pointer; }
+#inspector .mathline-result { padding: 0 8px 8px; min-height: 18px; color: var(--muted); font: 12px ui-monospace, Consolas, monospace; word-break: break-word; }
+#inspector .mathline-result.error { color: #e0715a; }
 #inspector .actions { padding: 0 8px; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
 #inspector .actions:has(button) { padding-bottom: 8px; }
 #inspector .group-btn { width: 100%; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 10px; min-height: 40px; cursor: pointer; }
