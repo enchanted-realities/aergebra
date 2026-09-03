@@ -16,6 +16,7 @@ export class BoardView {
   board: JXG.Board;
   private drawn = new Map<string, JXG.GeometryElement>();
   private drawnFrames = new Map<string, { rect: JXG.Polygon; label: JXG.Text }>();
+  private drawnImages = new Map<string, JXG.Image>();
   private syncing = false;
   private highlighted = new Set<string>();
 
@@ -47,8 +48,18 @@ export class BoardView {
     JXG.JSXGraph.freeBoard(this.board);
     this.drawn.clear();
     this.drawnFrames.clear();
+    this.drawnImages.clear();
     this.highlighted.clear();
     this.board = this.initBoard();
+  }
+
+  // Station 10 — export the live SVG root as a standalone, downloadable document.
+  exportSvg(): string {
+    const svg = document.getElementById(this.containerId)?.querySelector("svg");
+    if (!svg) return "";
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    return new XMLSerializer().serializeToString(clone);
   }
 
   /** Screen → world coordinates for tool clicks. */
@@ -61,6 +72,7 @@ export class BoardView {
     if (this.syncing) return;
     this.syncing = true;
     try {
+      this.syncImages(); // background images draw first — geometry stacks on top
       for (const obj of this.doc.objects) {
         const existing = this.drawn.get(obj.id);
         if (existing) {
@@ -123,6 +135,20 @@ export class BoardView {
         corners.forEach((c, i) => existing.rect.vertices[i]?.setPosition(JXG.COORDS_BY_USER, c));
         existing.label.setPosition(JXG.COORDS_BY_USER, [xmin, ymax + 0.25]);
       }
+    }
+  }
+
+  // Station 10 — an imported SVG becomes a movable background image, receipted like everything else.
+  private syncImages() {
+    for (const image of this.doc.images) {
+      const existing = this.drawnImages.get(image.id);
+      if (existing) {
+        if (existing.X() !== image.x || existing.Y() !== image.y) existing.setPosition(JXG.COORDS_BY_USER, [image.x, image.y]);
+        continue;
+      }
+      const el = this.board.create("image", [image.href, [image.x, image.y], [image.width, image.height]], { fixed: false });
+      el.on("drag", () => this.doc.moveImage(image.id, Number(el.X().toFixed(3)), Number(el.Y().toFixed(3))));
+      this.drawnImages.set(image.id, el);
     }
   }
 

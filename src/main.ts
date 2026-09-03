@@ -57,8 +57,8 @@ function sanitizeFilename(name: string): string {
   return name.trim().replace(/[^a-z0-9 _-]/gi, "_") || "untitled";
 }
 
-function downloadText(filename: string, text: string) {
-  const blob = new Blob([text], { type: "application/json" });
+function downloadText(filename: string, text: string, mime = "application/json") {
+  const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -92,4 +92,47 @@ fileOpen.addEventListener("change", async () => {
   } catch (err) {
     alert(`Aergebra: could not open "${file.name}" — ${(err as Error).message}`);
   }
+});
+
+// Station 10 — SVG import/export. Export serializes the live board's own SVG root; import places
+// the file as a movable background image object, self-contained as a data: URL (no external ref).
+document.getElementById("btn-export-svg")!.addEventListener("click", () => {
+  const svgText = view.exportSvg();
+  if (!svgText) return;
+  downloadText(`${sanitizeFilename(doc.title)}.svg`, svgText, "image/svg+xml");
+});
+
+function svgToDataUrl(svgText: string): string {
+  return `data:image/svg+xml,${encodeURIComponent(svgText)}`;
+}
+
+/** Height/width ratio read from an SVG's own viewBox or width/height, so an import isn't stretched. */
+function svgAspect(svgText: string): number {
+  try {
+    const parsed = new DOMParser().parseFromString(svgText, "image/svg+xml");
+    const root = parsed.documentElement;
+    const viewBox = root.getAttribute("viewBox");
+    if (viewBox) {
+      const parts = viewBox.trim().split(/\s+/).map(Number);
+      if (parts.length === 4 && parts[2] > 0) return parts[3] / parts[2];
+    }
+    const w = parseFloat(root.getAttribute("width") || "");
+    const h = parseFloat(root.getAttribute("height") || "");
+    if (w > 0 && h > 0) return h / w;
+  } catch {
+    // fall through to the default square aspect below
+  }
+  return 1;
+}
+
+const fileImportSvg = document.getElementById("file-import-svg") as HTMLInputElement;
+document.getElementById("btn-import-svg")!.addEventListener("click", () => fileImportSvg.click());
+fileImportSvg.addEventListener("change", async () => {
+  const file = fileImportSvg.files?.[0];
+  fileImportSvg.value = "";
+  if (!file) return;
+  const text = await file.text();
+  const width = 8;
+  const height = width * svgAspect(text);
+  doc.createImage(svgToDataUrl(text), { x: -width / 2, y: height / 2, width, height });
 });

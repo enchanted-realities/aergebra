@@ -36,6 +36,16 @@ export interface AerFrame {
   createdAt: string;
 }
 
+export interface AerImage {
+  id: string;               // IMG1, IMG2…
+  href: string;             // a data: URL — self-contained, no external reference to break
+  x: number;
+  y: number;                // world coords, lower-left anchor
+  width: number;
+  height: number;           // world units
+  createdAt: string;
+}
+
 type Listener = () => void;
 
 export class AergebraDoc {
@@ -43,6 +53,7 @@ export class AergebraDoc {
   objects: AerObject[] = [];
   groups: AerGroup[] = [];
   frames: AerFrame[] = [];
+  images: AerImage[] = [];
   receipts: Receipt[] = [];
   private seq = 0;
   private nextId = 1;
@@ -158,6 +169,34 @@ export class AergebraDoc {
     return frame;
   }
 
+  // Station 10 — an imported SVG becomes a movable background image object: id'd and receipted
+  // like everything else, but its own species (it isn't derived from anything in the model).
+  private nextImageId = 1;
+  createImage(href: string, opts: { x?: number; y?: number; width?: number; height?: number } = {}): AerImage {
+    const image: AerImage = {
+      id: `IMG${this.nextImageId++}`,
+      href,
+      x: opts.x ?? -4,
+      y: opts.y ?? 4,
+      width: opts.width ?? 8,
+      height: opts.height ?? 8,
+      createdAt: new Date().toISOString(),
+    };
+    this.images.push(image);
+    this.receipt("image", { id: image.id, x: image.x, y: image.y, width: image.width, height: image.height });
+    this.emit();
+    return image;
+  }
+
+  moveImage(id: string, x: number, y: number) {
+    const image = this.images.find((i) => i.id === id);
+    if (!image) return;
+    image.x = x;
+    image.y = y;
+    this.receipt("move", { id, x, y });
+    this.emit();
+  }
+
   /** Human/computer-readable definition — the algebra line for the Inspector. */
   definitionOf(obj: AerObject): string {
     switch (obj.type) {
@@ -177,11 +216,18 @@ export class AergebraDoc {
   }
 
   private counterSnapshot() {
-    return { seq: this.seq, nextId: this.nextId, nextGroupId: this.nextGroupId, nextFrameId: this.nextFrameId, names: { ...this.counters } };
+    return {
+      seq: this.seq,
+      nextId: this.nextId,
+      nextGroupId: this.nextGroupId,
+      nextFrameId: this.nextFrameId,
+      nextImageId: this.nextImageId,
+      names: { ...this.counters },
+    };
   }
 
   // Station 9 — the whole-project save. Format AERGEBRA_DOC_V1: everything round-trips —
-  // objects, groups, frames, the full receipted line, and the counters that mint the next id.
+  // objects, groups, frames, images, the full receipted line, and the counters that mint the next id.
   serialize(): string {
     return JSON.stringify(
       {
@@ -190,6 +236,7 @@ export class AergebraDoc {
         objects: this.objects,
         groups: this.groups,
         frames: this.frames,
+        images: this.images,
         receipts: this.receipts,
         counters: this.counterSnapshot(),
       },
@@ -202,10 +249,12 @@ export class AergebraDoc {
   // projection, .htt = hyperbolic time chambers (reserved, not emitted here). Export .scu is the
   // same schema under format SCU_V1 — either the whole current construction, or (with groupId) a
   // self-contained slice: the group, its members, their defining points, and any frame on it.
+  // Background images aren't part of any group's geometry, so a scoped .scu never carries one.
   serializeScu(groupId?: string): string {
     let objects = this.objects;
     let groups = this.groups;
     let frames = this.frames;
+    let images = this.images;
     if (groupId) {
       const group = this.groups.find((g) => g.id === groupId);
       if (group) {
@@ -214,10 +263,11 @@ export class AergebraDoc {
         objects = this.objects.filter((o) => ids.has(o.id));
         groups = [group];
         frames = this.frames.filter((f) => f.frameOf === groupId);
+        images = [];
       }
     }
     return JSON.stringify(
-      { format: "SCU_V1", title: this.title, objects, groups, frames, receipts: this.receipts, counters: this.counterSnapshot() },
+      { format: "SCU_V1", title: this.title, objects, groups, frames, images, receipts: this.receipts, counters: this.counterSnapshot() },
       null,
       2,
     );
@@ -248,6 +298,7 @@ export class AergebraDoc {
     this.objects = Array.isArray(data.objects) ? data.objects : [];
     this.groups = Array.isArray(data.groups) ? data.groups : [];
     this.frames = Array.isArray(data.frames) ? data.frames : [];
+    this.images = Array.isArray(data.images) ? data.images : [];
     this.receipts = Array.isArray(data.receipts) ? data.receipts : [];
 
     const c = data.counters ?? {};
@@ -255,6 +306,7 @@ export class AergebraDoc {
     this.nextId = Math.max(c.nextId ?? 1, AergebraDoc.maxSuffix(this.objects.map((o) => o.id), "AER") + 1);
     this.nextGroupId = Math.max(c.nextGroupId ?? 1, AergebraDoc.maxSuffix(this.groups.map((g) => g.id), "GRP") + 1);
     this.nextFrameId = Math.max(c.nextFrameId ?? 1, AergebraDoc.maxSuffix(this.frames.map((f) => f.id), "FRM") + 1);
+    this.nextImageId = Math.max(c.nextImageId ?? 1, AergebraDoc.maxSuffix(this.images.map((i) => i.id), "IMG") + 1);
     this.counters = { ...(c.names ?? {}) };
     for (const type of ["point", "segment", "circle", "polygon"] as AerType[]) {
       const seen = this.objects.filter((o) => o.type === type).length;

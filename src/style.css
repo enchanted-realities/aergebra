@@ -12,11 +12,12 @@ html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
 #app { display: flex; flex-direction: column; height: 100vh; }
 
-#topbar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+/* Wraps onto more than one line rather than clipping once five buttons + a title don't fit 375px. */
+#topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
 #brand { font-weight: 800; letter-spacing: 0.2px; flex-shrink: 0; }
 #doc-title { color: var(--ink); background: none; border: 1px solid transparent; border-radius: 6px; font: inherit; padding: 6px 8px; min-height: 40px; min-width: 0; flex: 1 1 auto; max-width: 320px; }
 #doc-title:hover, #doc-title:focus { border-color: var(--line); outline: none; }
-#topbar-actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+#topbar-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 #topbar-actions button { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; white-space: nowrap; }
 #topbar-actions button:hover { color: var(--ink); border-color: var(--accent); }
 
