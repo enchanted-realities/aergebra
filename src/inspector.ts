@@ -1,6 +1,8 @@
 // Station 5 — the right-hand Inspector: the algebra, live. The computer-facing truth.
-// Station 6 — grouping without flattening: shift-click multi-select, a Group button, groups
+// Station 6 — grouping without flattening: tap multi-select, a Group button, groups
 // render as headers with members nested (fully listed, individually selectable) beneath them.
+// Station 7 — meaning first-class: an inline editor sets/edits `meaning` on any object or group;
+// meaning is never required, never invented, and every change receipts via the model already.
 import type { AergebraDoc, AerGroup } from "./model";
 import type { BoardView } from "./render";
 
@@ -8,6 +10,7 @@ export class Inspector {
   private root: HTMLElement;
   private selected = new Set<string>(); // AER ids and GRP ids share this set — prefixes never collide
   private hoveredGroupId: string | null = null;
+  private editingId: string | null = null;
 
   constructor(private doc: AergebraDoc, container: HTMLElement, private board: BoardView) {
     this.root = container;
@@ -33,6 +36,11 @@ export class Inspector {
     this.renderList();
   }
 
+  private startEditing(id: string) {
+    this.editingId = id;
+    this.renderList();
+  }
+
   private refreshHighlight() {
     let members: string[] = [];
     if (this.hoveredGroupId) {
@@ -46,25 +54,81 @@ export class Inspector {
     else this.board.clearHighlightObjects();
   }
 
+  // Inline meaning editor — reachable by double-click (desktop bonus) or by the "meaning" tap
+  // affordance that appears on a selected row. Enter/blur saves, Escape cancels. Never required.
+  private appendMeaningEditor(list: Element, current: string | null, nested: boolean, commit: (v: string | null) => void) {
+    const wrap = document.createElement("div");
+    wrap.className = "row-wrap editing" + (nested ? " nested" : "");
+    const input = document.createElement("input");
+    input.className = "meaning-input";
+    input.type = "text";
+    input.placeholder = "meaning (optional)";
+    input.value = current ?? "";
+    const finish = (save: boolean) => {
+      const val = input.value.trim() ? input.value.trim() : null;
+      this.editingId = null;
+      if (save) commit(val); // doc emits -> renderList via subscription
+      else this.renderList();
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") finish(true);
+      else if (e.key === "Escape") finish(false);
+    });
+    input.addEventListener("blur", () => finish(true));
+    wrap.appendChild(input);
+    list.appendChild(wrap);
+    setTimeout(() => input.focus(), 0);
+  }
+
   private renderObjRow(list: Element, id: string, nested: boolean) {
     const obj = this.doc.get(id);
     if (!obj) return;
+    if (this.editingId === id) {
+      this.appendMeaningEditor(list, obj.meaning, nested, (v) => this.doc.setMeaning(id, v));
+      return;
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "row-wrap" + (nested ? " nested" : "");
     const row = document.createElement("button");
-    row.className = "obj" + (nested ? " nested" : "") + (this.selected.has(id) ? " selected" : "");
+    row.className = "obj" + (this.selected.has(id) ? " selected" : "");
     row.innerHTML = `${this.doc.definitionOf(obj)} <em>· ${obj.id}${obj.meaning ? " · " + obj.meaning : ""}</em>`;
     row.addEventListener("click", () => this.toggleSelect(id));
-    list.appendChild(row);
+    row.addEventListener("dblclick", (e) => { e.stopPropagation(); this.startEditing(id); });
+    wrap.appendChild(row);
+    if (this.selected.has(id)) {
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.textContent = "meaning";
+      editBtn.addEventListener("click", (e) => { e.stopPropagation(); this.startEditing(id); });
+      wrap.appendChild(editBtn);
+    }
+    list.appendChild(wrap);
   }
 
   private renderGroupHeader(list: Element, g: AerGroup) {
+    if (this.editingId === g.id) {
+      this.appendMeaningEditor(list, g.meaning, false, (v) => this.doc.setGroupMeaning(g.id, v));
+      return;
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "row-wrap";
     const row = document.createElement("button");
     row.className = "grp-header" + (this.selected.has(g.id) ? " selected" : "");
     row.innerHTML = `&#9662; ${g.name} <em>· ${g.id} · ${g.members.length} members${g.meaning ? " · " + g.meaning : ""}</em>`;
     row.addEventListener("click", () => this.toggleSelect(g.id));
+    row.addEventListener("dblclick", (e) => { e.stopPropagation(); this.startEditing(g.id); });
     // Hover highlight is a desktop bonus only — selection (tap) already highlights via refreshHighlight().
     row.addEventListener("mouseenter", () => { this.hoveredGroupId = g.id; this.refreshHighlight(); });
     row.addEventListener("mouseleave", () => { this.hoveredGroupId = null; this.refreshHighlight(); });
-    list.appendChild(row);
+    wrap.appendChild(row);
+    if (this.selected.has(g.id)) {
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.textContent = "meaning";
+      editBtn.addEventListener("click", (e) => { e.stopPropagation(); this.startEditing(g.id); });
+      wrap.appendChild(editBtn);
+    }
+    list.appendChild(wrap);
   }
 
   private renderList() {

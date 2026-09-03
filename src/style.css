@@ -33,12 +33,17 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -app
 #inspector .actions:has(button) { padding-bottom: 8px; }
 #inspector .group-btn { width: 100%; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 8px; cursor: pointer; }
 #inspector .objects { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
-#inspector .obj, #inspector .grp-header { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; color: var(--ink); font: 13px/1.5 ui-monospace, Consolas, monospace; padding: 10px 8px; min-height: 40px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#inspector .row-wrap { display: flex; align-items: stretch; gap: 4px; }
+#inspector .row-wrap.nested { padding-left: 22px; }
+#inspector .obj, #inspector .grp-header { display: block; flex: 1; min-width: 0; text-align: left; background: none; border: 0; border-radius: 8px; color: var(--ink); font: 13px/1.5 ui-monospace, Consolas, monospace; padding: 10px 8px; min-height: 40px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #inspector .obj:hover, #inspector .obj.selected, #inspector .grp-header:hover, #inspector .grp-header.selected { background: #17181c; }
-#inspector .obj.nested { padding-left: 22px; }
 #inspector .grp-header { font-weight: 700; border: 1px solid var(--line); margin-top: 4px; }
 #inspector .grp-header.selected { border-color: var(--accent); }
 #inspector .obj em, #inspector .grp-header em { color: var(--muted); font-style: normal; font-weight: 400; }
+/* Station 7 — meaning: a tap affordance on a selected row, never required, never invented text. */
+#inspector .edit-btn { flex-shrink: 0; background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font: 12px inherit; padding: 6px 10px; min-height: 40px; cursor: pointer; }
+#inspector .edit-btn:hover { color: var(--ink); border-color: var(--accent); }
+#inspector .meaning-input { flex: 1; min-width: 0; background: #17181c; border: 1px solid var(--accent); border-radius: 8px; color: var(--ink); font: 13px/1.5 ui-monospace, Consolas, monospace; padding: 10px 8px; min-height: 40px; }
 #inspector .receipts { border-top: 1px solid var(--line); padding: 8px 14px; color: var(--muted); font-size: 12px; }
 
 #bottombar { padding: 7px 16px; background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
