@@ -125,3 +125,36 @@ export function createToolApi(doc: AergebraDoc, view: BoardView): AergebraToolAp
     },
   };
 }
+
+// Station 14 — the WebMCP-shaped seam: a single entry point so any agent driving the page
+// (browser automation today, a future WebMCP transport) calls the SAME tools a human typed at
+// the bottom bar. Accepts a JSON string or a plain object shaped {tool, args}; never throws.
+export interface AgentCallResult {
+  ok: boolean;
+  result?: unknown;
+  error?: string;
+}
+
+export function executeToolCall(api: AergebraToolApi, input: unknown): AgentCallResult {
+  try {
+    const call = typeof input === "string" ? JSON.parse(input) : input;
+    if (!call || typeof call !== "object" || typeof (call as { tool?: unknown }).tool !== "string") {
+      return { ok: false, error: 'Expected {"tool": "<method name>", "args": [...]}' };
+    }
+    const { tool, args } = call as { tool: string; args?: unknown[] };
+    const fn = (api as unknown as Record<string, unknown>)[tool];
+    if (typeof fn !== "function") {
+      return { ok: false, error: `Unknown tool "${tool}". Available: ${Object.keys(api).join(", ")}` };
+    }
+    const result = (fn as (...a: unknown[]) => unknown).apply(api, Array.isArray(args) ? args : []);
+    // Most tools already return {ok, result|error} — unwrap it to the same envelope; getAlgebra(),
+    // getReceipts() and serialize() return a plain value, which is passed through as `result`.
+    if (result && typeof result === "object" && "ok" in (result as Record<string, unknown>)) {
+      const r = result as ApiResult<unknown>;
+      return r.ok ? { ok: true, result: r.result } : { ok: false, error: r.error };
+    }
+    return { ok: true, result };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}

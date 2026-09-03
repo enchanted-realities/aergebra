@@ -10,7 +10,7 @@ import { BoardView } from "./render";
 import { ToolController, TOOLS } from "./tools";
 import { Inspector } from "./inspector";
 import { importGgb } from "./ggbimport";
-import { createToolApi } from "./toolapi";
+import { createToolApi, executeToolCall } from "./toolapi";
 import { runCommandLine } from "./cmdline";
 
 const AUTOSAVE_KEY = "aergebra:autosave";
@@ -25,6 +25,11 @@ const inspector = new Inspector(doc, document.getElementById("inspector")!, view
 // Station 13 — every mutation, human-typed or agent-driven, goes through this SAME façade.
 const toolApi = createToolApi(doc, view);
 (window as unknown as { Aergebra: typeof toolApi }).Aergebra = toolApi;
+
+// Station 14 — the WebMCP-shaped seam: any agent driving the page calls the same tools through
+// one entry point. See AGENTS.md.
+(window as unknown as { __aergebra_execute: (input: unknown) => unknown }).__aergebra_execute = (input: unknown) =>
+  executeToolCall(toolApi, input);
 
 // Station 9 — restore autosave on boot (board/tools/inspector are already subscribed, so the
 // restored state draws onto the still-empty initial board), then wire autosave going forward.
