@@ -30,7 +30,13 @@
       <aside id="inspector" aria-label="Inspector"></aside>
     </main>
     <footer id="bottombar">
-      <span id="status">SCU7 · station by station</span>
+      <div id="status-row"><span id="status">SCU7 · station by station</span></div>
+      <div id="cmdline-row">
+        <span id="cmdline-prompt">Aergebra&gt;</span>
+        <input id="cmdline-input" type="text" placeholder="createPoint(2,3)" aria-label="Aergebra command line" autocomplete="off" />
+        <button id="cmdline-run">Run</button>
+      </div>
+      <div id="cmdline-output"></div>
     </footer>
   </div>
   <script type="module" src="/src/main.ts"></script>

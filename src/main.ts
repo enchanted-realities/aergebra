@@ -10,6 +10,8 @@ import { BoardView } from "./render";
 import { ToolController, TOOLS } from "./tools";
 import { Inspector } from "./inspector";
 import { importGgb } from "./ggbimport";
+import { createToolApi } from "./toolapi";
+import { runCommandLine } from "./cmdline";
 
 const AUTOSAVE_KEY = "aergebra:autosave";
 
@@ -19,6 +21,10 @@ doc.receipt("open", { app: "aergebra", recipe: "SCU7", note: "document opened" }
 const view = new BoardView(doc, "board");
 const tools = new ToolController(doc, view, document.getElementById("canvas-wrap")!);
 const inspector = new Inspector(doc, document.getElementById("inspector")!, view);
+
+// Station 13 — every mutation, human-typed or agent-driven, goes through this SAME façade.
+const toolApi = createToolApi(doc, view);
+(window as unknown as { Aergebra: typeof toolApi }).Aergebra = toolApi;
 
 // Station 9 — restore autosave on boot (board/tools/inspector are already subscribed, so the
 // restored state draws onto the still-empty initial board), then wire autosave going forward.
@@ -91,12 +97,8 @@ fileOpen.addEventListener("change", async () => {
   fileOpen.value = "";
   if (!file) return;
   const text = await file.text();
-  try {
-    view.rebuild(); // fresh board — old elements can't reconcile against an arbitrary loaded doc
-    doc.load(text);
-  } catch (err) {
-    alert(`Aergebra: could not open "${file.name}" — ${(err as Error).message}`);
-  }
+  const result = toolApi.load(text); // same façade a typed load(...) or an agent would use
+  if (!result.ok) alert(`Aergebra: could not open "${file.name}" — ${result.error}`);
 });
 
 // Station 10 — SVG import/export. Export serializes the live board's own SVG root; import places
@@ -158,3 +160,19 @@ fileImportGgb.addEventListener("change", async () => {
     alert(`Aergebra: could not import "${file.name}" — ${(err as Error).message}`);
   }
 });
+
+// Station 13 — the bottom bar becomes a command line: the SAME window.Aergebra calls, typed.
+const cmdInput = document.getElementById("cmdline-input") as HTMLInputElement;
+const cmdRun = document.getElementById("cmdline-run")!;
+const cmdOutput = document.getElementById("cmdline-output")!;
+
+function runCmdLine() {
+  const line = cmdInput.value;
+  if (!line.trim()) return;
+  const output = runCommandLine(toolApi, line);
+  cmdOutput.textContent = `${line} → ${output}`;
+  cmdInput.value = "";
+}
+// Tap-first (the Run button); Enter is a desktop bonus — never a required keyboard modifier.
+cmdRun.addEventListener("click", runCmdLine);
+cmdInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCmdLine(); });
