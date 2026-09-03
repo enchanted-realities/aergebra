@@ -9,10 +9,13 @@ const STYLE = {
   polygon: { borders: { strokeColor: "#e7e9f0", strokeWidth: 1.6 }, fillColor: "#7b7ff2", fillOpacity: 0.06 },
 };
 
+const HIGHLIGHT = "#7b7ff2";
+
 export class BoardView {
   board: JXG.Board;
   private drawn = new Map<string, JXG.GeometryElement>();
   private syncing = false;
+  private highlighted = new Set<string>();
 
   constructor(private doc: AergebraDoc, containerId: string) {
     this.board = JXG.JSXGraph.initBoard(containerId, {
@@ -79,5 +82,34 @@ export class BoardView {
         return this.board.create("polygon", vertices, { name: obj.name, ...STYLE.polygon });
       }
     }
+  }
+
+  // Station 6 — a group is a projection over existing elements: highlight is a style toggle, never a new species.
+  highlightObjects(ids: string[]) {
+    this.clearHighlightObjects();
+    for (const id of ids) {
+      const obj = this.doc.get(id);
+      const el = this.drawn.get(id);
+      if (!obj || !el) continue;
+      if (obj.type === "point") el.setAttribute({ strokeColor: HIGHLIGHT, fillColor: HIGHLIGHT });
+      else if (obj.type === "polygon") el.setAttribute({ fillColor: HIGHLIGHT, fillOpacity: 0.22 });
+      else el.setAttribute({ strokeColor: HIGHLIGHT, strokeWidth: 3 });
+      this.highlighted.add(id);
+    }
+    this.board.update();
+  }
+
+  clearHighlightObjects() {
+    for (const id of this.highlighted) {
+      const obj = this.doc.get(id);
+      const el = this.drawn.get(id);
+      if (!obj || !el) continue;
+      if (obj.type === "point") el.setAttribute({ strokeColor: STYLE.point.strokeColor, fillColor: STYLE.point.fillColor });
+      else if (obj.type === "polygon") el.setAttribute({ fillColor: STYLE.polygon.fillColor, fillOpacity: STYLE.polygon.fillOpacity });
+      else if (obj.type === "segment") el.setAttribute({ strokeColor: STYLE.line.strokeColor, strokeWidth: STYLE.line.strokeWidth });
+      else if (obj.type === "circle") el.setAttribute({ strokeColor: STYLE.circle.strokeColor, strokeWidth: STYLE.circle.strokeWidth });
+    }
+    this.highlighted.clear();
+    this.board.update();
   }
 }

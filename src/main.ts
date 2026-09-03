@@ -11,7 +11,7 @@ doc.receipt("open", { app: "aergebra", recipe: "SCU7", note: "document opened" }
 
 const view = new BoardView(doc, "board");
 const tools = new ToolController(doc, view, document.getElementById("canvas-wrap")!);
-new Inspector(doc, document.getElementById("inspector")!);
+new Inspector(doc, document.getElementById("inspector")!, view);
 
 const rail = document.getElementById("toolrail")!;
 const status = document.getElementById("status")!;

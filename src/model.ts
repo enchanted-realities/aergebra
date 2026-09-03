@@ -22,11 +22,20 @@ export interface Receipt {
   details: Record<string, unknown>;
 }
 
+export interface AerGroup {
+  id: string;              // GRP1, GRP2…
+  name: string;
+  members: string[];       // object ids — grouping is references, members keep full identity
+  meaning: string | null;
+  createdAt: string;
+}
+
 type Listener = () => void;
 
 export class AergebraDoc {
   title = "Untitled project";
   objects: AerObject[] = [];
+  groups: AerGroup[] = [];
   receipts: Receipt[] = [];
   private seq = 0;
   private nextId = 1;
@@ -93,6 +102,32 @@ export class AergebraDoc {
 
   get(id: string): AerObject | undefined {
     return this.objects.find((o) => o.id === id);
+  }
+
+  // Station 6 — grouping without flattening: a group holds references; nothing merges, nothing loses identity.
+  private nextGroupId = 1;
+  createGroup(memberIds: string[], name?: string): AerGroup | null {
+    const members = memberIds.filter((id) => this.get(id));
+    if (members.length < 2) return null;
+    const group: AerGroup = {
+      id: `GRP${this.nextGroupId++}`,
+      name: name ?? `grp${this.nextGroupId - 1}`,
+      members,
+      meaning: null,
+      createdAt: new Date().toISOString(),
+    };
+    this.groups.push(group);
+    this.receipt("group", { id: group.id, name: group.name, members });
+    this.emit();
+    return group;
+  }
+
+  setGroupMeaning(id: string, meaning: string | null) {
+    const g = this.groups.find((x) => x.id === id);
+    if (!g) return;
+    g.meaning = meaning;
+    this.receipt("meaning", { id, meaning });
+    this.emit();
   }
 
   /** Human/computer-readable definition — the algebra line for the Inspector. */
