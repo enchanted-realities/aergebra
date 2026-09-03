@@ -26,6 +26,8 @@ interface AergebraToolApi {
   group(...names: string[]): ApiResult<{ id: string; name: string }>;
   setMeaning(name: string, meaning?: string | null): ApiResult<{ id: string; meaning: string | null }>;
   frame(groupName: string): ApiResult<{ id: string; frameOf: string }>;
+  highlight(...names: string[]): ApiResult<{ count: number }>;  // light up stations while work happens
+  clearHighlight(): ApiResult<{ cleared: true }>;
   getAlgebra(): string[];             // one algebra line per object, e.g. "A = Point(3, 2) · AER1"
   getReceipts(n?: number): unknown[]; // the last n receipts (default 20)
   load(json: string): ApiResult<{ objects: number }>;  // AERGEBRA_DOC_V1 or SCU_V1
@@ -42,6 +44,8 @@ window.Aergebra.createSegment("A", "B");  // { ok: true, result: { id: "AER3", n
 window.Aergebra.group("A", "B");          // { ok: true, result: { id: "GRP1", name: "grp1" } }
 window.Aergebra.setMeaning("A", "launch point");
 window.Aergebra.frame("grp1");
+window.Aergebra.highlight("A");           // light up a station while work happens on it
+window.Aergebra.clearHighlight();         // hand off — clear before lighting the next one
 window.Aergebra.getAlgebra();
 // ["A = Point(2, 3) · AER1 · launch point", "B = Point(-2, -3) · AER2", "seg1 = Segment(A, B) · AER3"]
 ```
@@ -93,3 +97,9 @@ seam it would attach to, kept deliberately basic until that lands.
   by name.
 - `load(json)` replaces the ENTIRE current document (objects, groups, frames, images, the full
   receipted line) and gives the board a fresh JSXGraph instance. It does not merge.
+- `highlight`/`clearHighlight` are visual only — a style toggle on the board (station 6), never a
+  new species and never receipted. Andrea's superorganism ruling (2026-09-04): the system is a
+  superorganism of narrow specialists, and the geometry must SHOW which node is live. An agent
+  working through a group's members one at a time should `highlight(name)` the one it's on and
+  `clearHighlight()` before moving to the next — the same hand-off the Inspector's Walk button
+  runs when a human taps it on a selected group.

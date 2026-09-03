@@ -49,7 +49,8 @@ function parseCommand(line: string): ParsedCommand | null {
 
 const METHOD_NAMES = new Set([
   "createPoint", "createSegment", "createCircle", "createPolygon",
-  "group", "setMeaning", "frame", "getAlgebra", "getReceipts", "load", "serialize",
+  "group", "setMeaning", "frame", "highlight", "clearHighlight",
+  "getAlgebra", "getReceipts", "load", "serialize",
 ]);
 
 /** Runs one typed line against the tool API. Never throws — every failure comes back as text. */

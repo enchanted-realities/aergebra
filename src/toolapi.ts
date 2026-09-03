@@ -31,6 +31,8 @@ export interface AergebraToolApi {
   group(...names: string[]): ApiResult<{ id: string; name: string }>;
   setMeaning(name: string, meaning?: string | null): ApiResult<{ id: string; meaning: string | null }>;
   frame(groupName: string): ApiResult<{ id: string; frameOf: string }>;
+  highlight(...names: string[]): ApiResult<{ count: number }>;
+  clearHighlight(): ApiResult<{ cleared: true }>;
   getAlgebra(): string[];
   getReceipts(n?: number): unknown[];
   load(json: string): ApiResult<{ objects: number }>;
@@ -100,6 +102,22 @@ export function createToolApi(doc: AergebraDoc, view: BoardView): AergebraToolAp
       const f = doc.createFrame(groupId);
       if (!f) return fail(`frame failed (already framed, or "${groupName}" isn't a group)`);
       return ok({ id: f.id, frameOf: f.frameOf });
+    },
+
+    // Andrea's superorganism ruling (2026-09-04): the geometry must SHOW which nodes are live.
+    // Station 6 already built this as a style toggle on the board; expose it here so an outside
+    // agent can light stations while work happens, the same way the Inspector's Walk control does.
+    highlight(...names) {
+      const ids = names.map((n) => resolveObjectId(doc, n));
+      const missing = names.filter((_, i) => !ids[i]);
+      if (missing.length) return fail(`Unknown object(s): ${missing.join(", ")}`);
+      view.highlightObjects(ids as string[]);
+      return ok({ count: ids.length });
+    },
+
+    clearHighlight() {
+      view.clearHighlightObjects();
+      return ok({ cleared: true as const });
     },
 
     getAlgebra() {

@@ -14,6 +14,7 @@ export class Inspector {
   private selected = new Set<string>(); // AER ids and GRP ids share this set — prefixes never collide
   private hoveredGroupId: string | null = null;
   private editingId: string | null = null;
+  private walking = false;
 
   constructor(private doc: AergebraDoc, container: HTMLElement, private board: BoardView) {
     this.root = container;
@@ -75,6 +76,24 @@ export class Inspector {
   selectedGroupId(): string | null {
     const groupIds = Array.from(this.selected).filter((id) => id.startsWith("GRP"));
     return groupIds.length === 1 ? groupIds[0] : null;
+  }
+
+  // Andrea's superorganism ruling (2026-09-04): the system is narrow specialists, and the
+  // geometry must SHOW which station is live — the currently-active member lights up, then hands
+  // off to the next. Touch-first: a single tap starts the whole walk, no held gesture needed.
+  private async walkGroup(groupId: string) {
+    if (this.walking) return;
+    const group = this.doc.groups.find((g) => g.id === groupId);
+    if (!group || !group.members.length) return;
+    this.walking = true;
+    this.renderList();
+    for (const id of group.members) {
+      this.board.highlightObjects([id]);
+      await new Promise((r) => setTimeout(r, 700));
+    }
+    this.board.clearHighlightObjects();
+    this.walking = false;
+    this.renderList();
   }
 
   private refreshHighlight() {
@@ -198,12 +217,21 @@ export class Inspector {
       actions.appendChild(btn);
     }
     const selectedGroupIds = Array.from(this.selected).filter((id) => id.startsWith("GRP"));
-    if (selectedGroupIds.length === 1 && !this.doc.frames.some((f) => f.frameOf === selectedGroupIds[0])) {
-      const frameBtn = document.createElement("button");
-      frameBtn.className = "group-btn frame-btn";
-      frameBtn.textContent = "Frame";
-      frameBtn.addEventListener("click", () => this.doc.createFrame(selectedGroupIds[0]));
-      actions.appendChild(frameBtn);
+    if (selectedGroupIds.length === 1) {
+      const groupId = selectedGroupIds[0];
+      if (!this.doc.frames.some((f) => f.frameOf === groupId)) {
+        const frameBtn = document.createElement("button");
+        frameBtn.className = "group-btn frame-btn";
+        frameBtn.textContent = "Frame";
+        frameBtn.addEventListener("click", () => this.doc.createFrame(groupId));
+        actions.appendChild(frameBtn);
+      }
+      const walkBtn = document.createElement("button");
+      walkBtn.className = "group-btn walk-btn";
+      walkBtn.textContent = this.walking ? "Walking…" : "Walk";
+      walkBtn.disabled = this.walking;
+      walkBtn.addEventListener("click", () => this.walkGroup(groupId));
+      actions.appendChild(walkBtn);
     }
 
     const receipts = this.root.querySelector(".receipts")!;
