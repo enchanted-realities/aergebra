@@ -1,5 +1,5 @@
 // Aergebra — built to SCU7, station by station. Reuse don't lose.
-import "jsxgraph/distrib/jsxgraph.css";
+import "./jsxgraph.css";
 import "./style.css";
 import { AergebraDoc } from "./model";
 import { BoardView } from "./render";
