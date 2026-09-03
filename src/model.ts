@@ -62,6 +62,13 @@ export class AergebraDoc {
     this.receipts.push(Object.freeze({ seq: ++this.seq, at: new Date().toISOString(), action, details }));
   }
 
+  setTitle(title: string) {
+    if (title === this.title) return;
+    this.title = title;
+    this.receipt("title", { title });
+    this.emit();
+  }
+
   private mintName(type: AerType): string {
     if (type === "point") {
       const n = (this.counters.point = (this.counters.point ?? 0) + 1);
@@ -169,11 +176,92 @@ export class AergebraDoc {
     }
   }
 
+  private counterSnapshot() {
+    return { seq: this.seq, nextId: this.nextId, nextGroupId: this.nextGroupId, nextFrameId: this.nextFrameId, names: { ...this.counters } };
+  }
+
+  // Station 9 — the whole-project save. Format AERGEBRA_DOC_V1: everything round-trips —
+  // objects, groups, frames, the full receipted line, and the counters that mint the next id.
   serialize(): string {
     return JSON.stringify(
-      { format: "AERGEBRA_DOC_V1", title: this.title, objects: this.objects, receipts: this.receipts },
+      {
+        format: "AERGEBRA_DOC_V1",
+        title: this.title,
+        objects: this.objects,
+        groups: this.groups,
+        frames: this.frames,
+        receipts: this.receipts,
+        counters: this.counterSnapshot(),
+      },
       null,
       2,
     );
+  }
+
+  // The Aerth format family (Andrea, 2026-09-04): .acu = the timeline, .scu = a polygon/cluster
+  // projection, .htt = hyperbolic time chambers (reserved, not emitted here). Export .scu is the
+  // same schema under format SCU_V1 — either the whole current construction, or (with groupId) a
+  // self-contained slice: the group, its members, their defining points, and any frame on it.
+  serializeScu(groupId?: string): string {
+    let objects = this.objects;
+    let groups = this.groups;
+    let frames = this.frames;
+    if (groupId) {
+      const group = this.groups.find((g) => g.id === groupId);
+      if (group) {
+        const ids = new Set<string>(group.members);
+        for (const id of group.members) this.get(id)?.parents.forEach((p) => ids.add(p));
+        objects = this.objects.filter((o) => ids.has(o.id));
+        groups = [group];
+        frames = this.frames.filter((f) => f.frameOf === groupId);
+      }
+    }
+    return JSON.stringify(
+      { format: "SCU_V1", title: this.title, objects, groups, frames, receipts: this.receipts, counters: this.counterSnapshot() },
+      null,
+      2,
+    );
+  }
+
+  /** Highest numeric suffix among ids sharing a prefix — a safety floor for minted ids after load. */
+  private static maxSuffix(ids: string[], prefix: string): number {
+    let max = 0;
+    for (const id of ids) {
+      if (!id.startsWith(prefix)) continue;
+      const n = Number(id.slice(prefix.length));
+      if (Number.isFinite(n) && n > max) max = n;
+    }
+    return max;
+  }
+
+  // Station 9 — load rebuilds the model from a serialized doc (AERGEBRA_DOC_V1 or SCU_V1) and
+  // hands back a FRESH board (the caller re-inits BoardView). History is forward-only: the loaded
+  // receipts are kept verbatim and a "load" receipt is appended, never inserted or rewritten.
+  // Counters are restored from the file, then floored against the actual loaded ids so a hand-edited
+  // or foreign file can never mint a colliding AER/GRP/FRM id.
+  load(json: string) {
+    const data = JSON.parse(json);
+    if (data.format !== "AERGEBRA_DOC_V1" && data.format !== "SCU_V1") {
+      throw new Error(`Unrecognized format: ${data.format}`);
+    }
+    this.title = data.title ?? "Untitled project";
+    this.objects = Array.isArray(data.objects) ? data.objects : [];
+    this.groups = Array.isArray(data.groups) ? data.groups : [];
+    this.frames = Array.isArray(data.frames) ? data.frames : [];
+    this.receipts = Array.isArray(data.receipts) ? data.receipts : [];
+
+    const c = data.counters ?? {};
+    this.seq = Math.max(c.seq ?? 0, ...this.receipts.map((r: Receipt) => r.seq), 0);
+    this.nextId = Math.max(c.nextId ?? 1, AergebraDoc.maxSuffix(this.objects.map((o) => o.id), "AER") + 1);
+    this.nextGroupId = Math.max(c.nextGroupId ?? 1, AergebraDoc.maxSuffix(this.groups.map((g) => g.id), "GRP") + 1);
+    this.nextFrameId = Math.max(c.nextFrameId ?? 1, AergebraDoc.maxSuffix(this.frames.map((f) => f.id), "FRM") + 1);
+    this.counters = { ...(c.names ?? {}) };
+    for (const type of ["point", "segment", "circle", "polygon"] as AerType[]) {
+      const seen = this.objects.filter((o) => o.type === type).length;
+      this.counters[type] = Math.max(this.counters[type] ?? 0, seen);
+    }
+
+    this.receipt("load", { format: data.format, title: this.title, objects: this.objects.length });
+    this.emit();
   }
 }

@@ -41,6 +41,12 @@ export class Inspector {
     this.renderList();
   }
 
+  /** Station 9 — the single selected group, if exactly one is selected; scopes an .scu export. */
+  selectedGroupId(): string | null {
+    const groupIds = Array.from(this.selected).filter((id) => id.startsWith("GRP"));
+    return groupIds.length === 1 ? groupIds[0] : null;
+  }
+
   private refreshHighlight() {
     let members: string[] = [];
     if (this.hoveredGroupId) {

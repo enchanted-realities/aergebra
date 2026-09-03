@@ -19,8 +19,13 @@ export class BoardView {
   private syncing = false;
   private highlighted = new Set<string>();
 
-  constructor(private doc: AergebraDoc, containerId: string) {
-    this.board = JXG.JSXGraph.initBoard(containerId, {
+  constructor(private doc: AergebraDoc, private containerId: string) {
+    this.board = this.initBoard();
+    doc.subscribe(() => this.sync());
+  }
+
+  private initBoard(): JXG.Board {
+    return JXG.JSXGraph.initBoard(this.containerId, {
       boundingbox: [-12, 8, 12, -8],
       axis: true,
       grid: false,
@@ -33,7 +38,17 @@ export class BoardView {
         y: { strokeColor: "#3a3b44", ticks: { strokeColor: "#23242b", label: { strokeColor: "#5a5c68", fontSize: 10 } } },
       },
     });
-    doc.subscribe(() => this.sync());
+  }
+
+  // Station 9 — Open must hand back a FRESH board: old JSXGraph elements can't be reconciled
+  // against an arbitrary loaded doc, so free the board and start empty. Call this BEFORE
+  // doc.load(...) so the doc's emit draws the restored state onto the new board.
+  rebuild() {
+    JXG.JSXGraph.freeBoard(this.board);
+    this.drawn.clear();
+    this.drawnFrames.clear();
+    this.highlighted.clear();
+    this.board = this.initBoard();
   }
 
   /** Screen → world coordinates for tool clicks. */
