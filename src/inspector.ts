@@ -114,7 +114,8 @@ export class Inspector {
     wrap.className = "row-wrap";
     const row = document.createElement("button");
     row.className = "grp-header" + (this.selected.has(g.id) ? " selected" : "");
-    row.innerHTML = `&#9662; ${g.name} <em>· ${g.id} · ${g.members.length} members${g.meaning ? " · " + g.meaning : ""}</em>`;
+    const framed = this.doc.frames.some((f) => f.frameOf === g.id);
+    row.innerHTML = `&#9662; ${g.name} <em>· ${g.id} · ${g.members.length} members${framed ? " · framed" : ""}${g.meaning ? " · " + g.meaning : ""}</em>`;
     row.addEventListener("click", () => this.toggleSelect(g.id));
     row.addEventListener("dblclick", (e) => { e.stopPropagation(); this.startEditing(g.id); });
     // Hover highlight is a desktop bonus only — selection (tap) already highlights via refreshHighlight().
@@ -159,6 +160,14 @@ export class Inspector {
         this.doc.createGroup(selectedObjectIds);
       });
       actions.appendChild(btn);
+    }
+    const selectedGroupIds = Array.from(this.selected).filter((id) => id.startsWith("GRP"));
+    if (selectedGroupIds.length === 1 && !this.doc.frames.some((f) => f.frameOf === selectedGroupIds[0])) {
+      const frameBtn = document.createElement("button");
+      frameBtn.className = "group-btn frame-btn";
+      frameBtn.textContent = "Frame";
+      frameBtn.addEventListener("click", () => this.doc.createFrame(selectedGroupIds[0]));
+      actions.appendChild(frameBtn);
     }
 
     const receipts = this.root.querySelector(".receipts")!;

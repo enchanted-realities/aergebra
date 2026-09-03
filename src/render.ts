@@ -7,6 +7,7 @@ const STYLE = {
   line: { strokeColor: "#e7e9f0", strokeWidth: 1.6 },
   circle: { strokeColor: "#e7e9f0", strokeWidth: 1.6, fillOpacity: 0 },
   polygon: { borders: { strokeColor: "#e7e9f0", strokeWidth: 1.6 }, fillColor: "#7b7ff2", fillOpacity: 0.06 },
+  frame: { strokeColor: "#4a4c58", strokeWidth: 1 },
 };
 
 const HIGHLIGHT = "#7b7ff2";
@@ -14,6 +15,7 @@ const HIGHLIGHT = "#7b7ff2";
 export class BoardView {
   board: JXG.Board;
   private drawn = new Map<string, JXG.GeometryElement>();
+  private drawnFrames = new Map<string, { rect: JXG.Polygon; label: JXG.Text }>();
   private syncing = false;
   private highlighted = new Set<string>();
 
@@ -56,9 +58,56 @@ export class BoardView {
         }
         this.drawn.set(obj.id, this.draw(obj));
       }
+      this.syncFrames();
       this.board.update();
     } finally {
       this.syncing = false;
+    }
+  }
+
+  // Station 8 — a frame is a derived bounding rectangle over a group's members: it carries no
+  // geometry of its own, it is recomputed from member point coordinates on every sync.
+  private frameBounds(memberIds: string[]): [number, number, number, number] | null {
+    const xs: number[] = [];
+    const ys: number[] = [];
+    for (const id of memberIds) {
+      const obj = this.doc.get(id);
+      if (!obj) continue;
+      const points = obj.type === "point" ? [obj] : obj.parents.map((pid) => this.doc.get(pid));
+      for (const p of points) {
+        if (p?.type === "point" && p.coords) { xs.push(p.coords[0]); ys.push(p.coords[1]); }
+      }
+    }
+    if (!xs.length) return null;
+    const pad = 0.6;
+    return [Math.min(...xs) - pad, Math.max(...ys) + pad, Math.max(...xs) + pad, Math.min(...ys) - pad]; // xmin, ymax, xmax, ymin
+  }
+
+  private syncFrames() {
+    for (const frame of this.doc.frames) {
+      const group = this.doc.groups.find((g) => g.id === frame.frameOf);
+      const bounds = group && this.frameBounds(group.members);
+      if (!group || !bounds) continue;
+      const [xmin, ymax, xmax, ymin] = bounds;
+      const corners: [number, number][] = [[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]];
+      const existing = this.drawnFrames.get(frame.id);
+      if (!existing) {
+        const rect = this.board.create("polygon", corners, {
+          fillColor: "none",
+          fillOpacity: 0,
+          borders: STYLE.frame,
+          vertices: { visible: false },
+          highlight: false,
+          fixed: true,
+        });
+        const label = this.board.create("text", [xmin, ymax + 0.25, group.name], { color: "#8b8fa3", fontSize: 12, fixed: true });
+        this.drawnFrames.set(frame.id, { rect, label });
+      } else {
+        // JSXGraph closes a polygon's vertex list with a duplicate of vertex[0] — only the first
+        // 4 are the real corners.
+        corners.forEach((c, i) => existing.rect.vertices[i]?.setPosition(JXG.COORDS_BY_USER, c));
+        existing.label.setPosition(JXG.COORDS_BY_USER, [xmin, ymax + 0.25]);
+      }
     }
   }
 

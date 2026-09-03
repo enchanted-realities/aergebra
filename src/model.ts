@@ -30,12 +30,19 @@ export interface AerGroup {
   createdAt: string;
 }
 
+export interface AerFrame {
+  id: string;               // FRM1, FRM2…
+  frameOf: string;          // group id — a frame is a PROJECTION of a group, not a new species
+  createdAt: string;
+}
+
 type Listener = () => void;
 
 export class AergebraDoc {
   title = "Untitled project";
   objects: AerObject[] = [];
   groups: AerGroup[] = [];
+  frames: AerFrame[] = [];
   receipts: Receipt[] = [];
   private seq = 0;
   private nextId = 1;
@@ -128,6 +135,20 @@ export class AergebraDoc {
     g.meaning = meaning;
     this.receipt("meaning", { id, meaning });
     this.emit();
+  }
+
+  // Station 8 — a frame is a derived bounding rectangle over a group: a projection, not a new
+  // species. One frame per group; it carries no geometry of its own, only the reference.
+  private nextFrameId = 1;
+  createFrame(groupId: string): AerFrame | null {
+    const group = this.groups.find((g) => g.id === groupId);
+    if (!group) return null;
+    if (this.frames.some((f) => f.frameOf === groupId)) return null;
+    const frame: AerFrame = { id: `FRM${this.nextFrameId++}`, frameOf: groupId, createdAt: new Date().toISOString() };
+    this.frames.push(frame);
+    this.receipt("frame", { id: frame.id, frameOf: groupId });
+    this.emit();
+    return frame;
   }
 
   /** Human/computer-readable definition — the algebra line for the Inspector. */
