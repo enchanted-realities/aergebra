@@ -136,18 +136,6 @@ tag next to a selected row (e.g. `· brown`) — no colour swatches or pickers.
 - `.scu` — a polygon/cluster projection (Export .scu: the whole construction, or a selected group).
 - `.htt` — hyperbolic time chambers. Reserved; Aergebra doesn't emit `.htt` yet.
 
-## config/ — the canon files
-
-`config/` holds the ruled vocabulary from the AERI Normalized Technical Specification and the
-ratified AERDNA intake kernel, as literal JSON, for later stations to read rather than re-derive:
-
-- `six-banks.json` — WHO / WHAT / WHERE / WHEN / WHY / HOW.
-- `five-stations.json` — Kapture → Construe → Agency (optional) → Settle → Rest.
-- `aer-states.json` — the 10 AER states (codes 1–10).
-- `station-state-whitelist.json` — the 19 ruled legal Station × State cells (`*` = guarded).
-- `fact-modes.json` — the 9 epistemic modes.
-- `verification.json` — VERIFIED / UNVERIFIED / NOT_APPLICABLE.
-
 ## demo/
 
 `demo/scu65-mission.aergebra.json` — a small mission-shaped construction built entirely through
