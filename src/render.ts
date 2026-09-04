@@ -76,6 +76,16 @@ export class BoardView {
     if (!pts.length && !this.doc.images.length) return;
     const xs = pts.map((p) => p.coords![0]);
     const ys = pts.map((p) => p.coords![1]);
+    // Circles reach past their two defining points — include the full disc, or the rim clips.
+    for (const c of this.doc.objects) {
+      if (c.type !== "circle" || !c.parents || c.parents.length < 2) continue;
+      const centre = this.doc.get(c.parents[0])?.coords;
+      const rim = this.doc.get(c.parents[1])?.coords;
+      if (!centre || !rim) continue;
+      const r = Math.hypot(rim[0] - centre[0], rim[1] - centre[1]);
+      xs.push(centre[0] - r, centre[0] + r);
+      ys.push(centre[1] - r, centre[1] + r);
+    }
     for (const img of this.doc.images) {
       xs.push(img.x, img.x + img.width);
       ys.push(img.y, img.y + img.height);
