@@ -62,7 +62,9 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -app
 
 /* Station 13 — the bottom bar is also a command line: the same window.Aergebra calls, typed. */
 #bottombar { padding: 7px 16px 10px; background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
-#status-row { padding-bottom: 6px; }
+#status-row { padding-bottom: 6px; display: flex; justify-content: space-between; gap: 12px; }
+#webmcp-badge { font: 12px ui-monospace, Consolas, monospace; white-space: nowrap; }
+#webmcp-badge.live { color: #14b8a6; } /* teal — free and willing, per the colour canon */
 #cmdline-row { display: flex; align-items: stretch; gap: 6px; }
 #cmdline-prompt { flex-shrink: 0; align-self: center; color: var(--accent); font: 13px ui-monospace, Consolas, monospace; font-weight: 700; }
 #cmdline-input { flex: 1; min-width: 0; background: #17181c; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font: 13px ui-monospace, Consolas, monospace; padding: 0 10px; min-height: 40px; }

@@ -11,6 +11,7 @@ import { ToolController, TOOLS } from "./tools";
 import { Inspector } from "./inspector";
 import { importGgb } from "./ggbimport";
 import { createToolApi, executeToolCall } from "./toolapi";
+import { registerWebMcp } from "./webmcp";
 import { runCommandLine } from "./cmdline";
 
 const AUTOSAVE_KEY = "aergebra:autosave";
@@ -30,6 +31,29 @@ const toolApi = createToolApi(doc, view);
 // one entry point. See AGENTS.md.
 (window as unknown as { __aergebra_execute: (input: unknown) => unknown }).__aergebra_execute = (input: unknown) =>
   executeToolCall(toolApi, input);
+
+// WebMCP proper — the seam plugged into the Web Model Context API. Agent calls echo in the
+// same command-line output a human's typed calls use; the badge in that bar says whether the
+// browser offers a model context at all.
+const webMcpBadge = document.getElementById("webmcp-badge")!;
+const echoAgentCall = (line: string) => {
+  document.getElementById("cmdline-output")!.textContent = line;
+};
+let webMcpRegistered = false;
+function tryRegisterWebMcp() {
+  if (webMcpRegistered) return;
+  const status = registerWebMcp(toolApi, echoAgentCall);
+  webMcpRegistered = status.available;
+  webMcpBadge.textContent = status.available
+    ? `WebMCP · ${status.toolCount} tools live`
+    : "WebMCP · not offered by this browser";
+  webMcpBadge.classList.toggle("live", status.available);
+}
+tryRegisterWebMcp();
+// A model context injected after load (an extension, a polyfill, an agentic browser attaching
+// late) still gets the tools: re-check briefly, and leave a manual hook on the window.
+for (const delay of [500, 1500, 4000]) setTimeout(tryRegisterWebMcp, delay);
+(window as unknown as { __aergebra_webmcp_register: () => void }).__aergebra_webmcp_register = tryRegisterWebMcp;
 
 // Station 9 — restore autosave on boot (board/tools/inspector are already subscribed, so the
 // restored state draws onto the still-empty initial board), then wire autosave going forward.
