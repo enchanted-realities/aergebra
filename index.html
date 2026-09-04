@@ -9,23 +9,28 @@
 </head>
 <body>
   <div id="app">
+    <!-- Topbar transplanted from the v8 shell (aergebra-v8-src/app/page.tsx:1346-1401): brand mark,
+         wordmark, divider, project name; then the three file verbs — Save / Import / Export. -->
     <header id="topbar">
-      <span id="brand">Aergebra</span>
-      <input id="doc-title" type="text" value="Untitled project" aria-label="Project title" />
-      <div id="topbar-actions">
-        <button id="btn-save">Save</button>
-        <span class="topbar-divider" aria-hidden="true"></span>
-        <button id="btn-open">Open</button>
-        <button id="btn-export-scu">Export SCU</button>
-        <button id="btn-export-svg">Export SVG</button>
-        <button id="btn-import-svg">Import image</button>
-        <button id="btn-import-ggb">Import GGB</button>
-        <input id="file-open" type="file" accept=".json,.aergebra.json,.scu" hidden />
-        <input id="file-import-svg" type="file" accept=".svg,image/svg+xml,image/png,image/jpeg,image/webp" hidden />
-        <input id="file-import-ggb" type="file" accept=".ggb" hidden />
+      <div class="brand-group">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name">Aergebra</span>
+        <span class="top-divider" aria-hidden="true"></span>
+        <input id="doc-title" class="project-name" type="text" value="Untitled project" aria-label="Project title" />
+      </div>
+      <div class="file-actions">
+        <button id="btn-save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span>Save</span></button>
+        <button id="btn-import"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg><span>Import</span></button>
+        <input id="file-import" type="file" accept=".json,.aergebra.json,.scu,.ggb,.svg,.png,.jpg,.jpeg,.webp,image/*" hidden />
+        <details class="export-menu">
+          <summary><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg><span>Export</span></summary>
+          <div class="export-options">
+            <button id="btn-export-scu">SCU</button>
+            <button id="btn-export-svg">SVG</button>
+          </div>
+        </details>
       </div>
     </header>
-    <div id="pitchline">Agents and humans share one live board — not screenshots — through WebMCP.</div>
     <main id="workspace">
       <nav id="toolrail" aria-label="Creation tools"></nav>
       <section id="canvas-wrap">
@@ -36,6 +41,7 @@
           <i class="sw sw-orange" title="orange — ready"></i>ready
           <i class="sw sw-teal" title="teal — willing"></i>willing
         </div>
+        <div id="status-hint"></div>
       </section>
       <aside id="inspector" aria-label="Inspector"></aside>
     </main>

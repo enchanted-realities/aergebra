@@ -13,25 +13,37 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, ui-sans-
 #app { display: flex; flex-direction: column; height: 100vh; }
 
 /* Wraps onto more than one line rather than clipping once five buttons + a title don't fit 375px. */
-#topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
-#brand { font-weight: 650; font-size: 16px; letter-spacing: -0.01em; flex-shrink: 0; }
-#doc-title { color: var(--ink); background: none; border: 1px solid transparent; border-radius: 6px; font: inherit; font-weight: 650; font-size: 15px; padding: 6px 8px; min-height: 40px; min-width: 0; flex: 1 1 auto; max-width: 320px; }
-#doc-title:hover, #doc-title:focus { border-color: var(--line); outline: none; }
-#topbar-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-#topbar-actions button { background: none; border: 0; border-radius: 9px; color: var(--muted); font: inherit; font-weight: 600; padding: 8px 14px; min-height: 40px; cursor: pointer; white-space: nowrap; }
-#topbar-actions button:hover { color: var(--ink); background: #17181c; }
-.topbar-divider { width: 1px; height: 24px; background: var(--line); margin: 0 6px; flex-shrink: 0; }
-#topbar-actions #btn-save { background: var(--accent); color: var(--bg); border: 0; font-weight: 700; }
-#topbar-actions #btn-save:hover { background: var(--accent); color: var(--bg); filter: brightness(1.08); }
-
-#pitchline { padding: 6px 16px; background: var(--panel); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+/* Topbar — transplanted from the v8 shell, aergebra-v8-src/app/globals.css:29-54 and :105-120
+   (tokens mapped: --border → --line, --text → --ink; the shell's 66px header row is a 56px flex row here). */
+#topbar { background: #0a0b0d; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 18px; min-height: 56px; position: relative; z-index: 20; }
+.brand-group { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.brand-mark { width: 32px; height: 32px; border: 2px solid var(--accent); border-radius: 50%; position: relative; flex-shrink: 0; }
+.brand-mark span, .brand-mark::before, .brand-mark::after { content: ""; width: 5px; height: 5px; position: absolute; border-radius: 50%; background: var(--accent); }
+.brand-mark span { left: -3px; top: 11px; }
+.brand-mark::before { right: -3px; top: 8px; }
+.brand-mark::after { left: 12px; bottom: -3px; }
+.brand-name { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+.top-divider { width: 1px; height: 34px; background: var(--line); margin: 0 6px; }
+#doc-title.project-name { color: var(--ink); background: transparent; border: 0; font: inherit; font-weight: 650; font-size: 16px; padding: 6px 8px; min-height: 40px; min-width: 0; flex: 1 1 auto; max-width: 320px; border-radius: 6px; }
+#doc-title.project-name:hover, #doc-title.project-name:focus { background: #17181c; outline: none; }
+.file-actions { display: flex; align-items: center; gap: 6px; }
+.file-actions button, .file-actions summary { border: 0; background: transparent; color: var(--ink); font: inherit; min-width: 40px; min-height: 40px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; cursor: pointer; list-style: none; }
+.file-actions button:hover, .file-actions summary:hover { background: #17181c; }
+.file-actions summary::-webkit-details-marker { display: none; }
+.export-menu { position: relative; }
+.export-menu .export-options { position: absolute; right: 0; top: calc(100% + 4px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 4px; min-width: 120px; z-index: 30; }
+.export-menu .export-options button { justify-content: flex-start; }
 #workspace { flex: 1; display: flex; min-height: 0; }
 
 /* Touch-friendly, never clips: rail and inspector shrink gracefully down to a 375px-wide finger-driven screen. */
-#toolrail { display: flex; flex-direction: column; gap: 6px; padding: 10px 6px; background: var(--panel); border-right: 1px solid var(--line); width: clamp(56px, 12vw, 84px); flex-shrink: 0; }
-#toolrail button { background: none; border: 1px solid transparent; border-radius: 10px; color: var(--muted); font: inherit; font-weight: 700; padding: 12px 4px; cursor: pointer; min-height: 44px; }
-#toolrail button:hover { color: var(--ink); }
-#toolrail button.active { color: var(--ink); border-color: var(--accent); background: #17181c; }
+/* Tool rail — transplanted from the v8 shell, aergebra-v8-src/app/globals.css:125-131 (76px column,
+   icon over a 12px label, active = left 3px accent bar + soft gradient; accent mapped to canon teal). */
+#toolrail { width: 76px; flex-shrink: 0; min-height: 0; overflow-y: auto; background: #0b0c0e; border-right: 1px solid var(--line); padding: 8px 0; display: flex; flex-direction: column; }
+#toolrail button { width: 100%; height: 58px; border: 0; background: transparent; color: #cfd0d5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: inherit; font-size: 12px; position: relative; cursor: pointer; }
+#toolrail button svg { width: 20px; height: 20px; }
+#toolrail button.active { color: var(--accent); background: linear-gradient(90deg, rgba(43,181,160,.22), transparent); }
+#toolrail button.active::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--accent); }
+#toolrail button:hover { background-color: #17181d; }
 
 #canvas-wrap { flex: 1; min-width: 0; position: relative; background: var(--bg); }
 #board { position: absolute; inset: 0; }
@@ -42,6 +54,9 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, ui-sans-
 #state-legend .sw-brown { background: #8b5e34; }
 #state-legend .sw-orange { background: #e8a13c; }
 #state-legend .sw-teal { background: #2bb5a0; }
+/* The shell's interaction-hint chip (aergebra-v8-src/components/aergebra-engine/engine.css:28), bottom-right
+   because the legend already holds bottom-left. */
+#status-hint { position: absolute; bottom: 10px; right: 10px; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--muted); font: 12px ui-monospace, Consolas, monospace; max-width: calc(100% - 20px); }
 
 #inspector { width: clamp(180px, 40vw, 320px); flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 #inspector h2 { margin: 0; padding: 12px 14px 8px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }

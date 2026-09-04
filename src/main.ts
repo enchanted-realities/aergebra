@@ -86,20 +86,38 @@ doc.subscribe(() => localStorage.setItem(AUTOSAVE_KEY, doc.serialize()));
 const rail = document.getElementById("toolrail")!;
 const status = document.getElementById("status")!;
 
+// Rail icons — the v8 shell's Lucide set (aergebra-v8-src/app/page.tsx:855-865: MousePointer2, Grip,
+// Circle, Pentagon), inlined as SVG so nothing loads over the network. Point has no shell icon
+// (the shell's rail has no point tool) — it's a filled circle, the one glyph the canon allows.
+const SVG_OPEN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
+const RAIL_ICONS: Record<string, string> = {
+  arrow: `${SVG_OPEN}<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>`,
+  point: `${SVG_OPEN}<circle cx="12" cy="12" r="3" fill="currentColor"/></svg>`,
+  segment: `${SVG_OPEN}<circle cx="12" cy="5" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="5" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="19" cy="19" r="1"/><circle cx="5" cy="19" r="1"/></svg>`,
+  circle: `${SVG_OPEN}<circle cx="12" cy="12" r="10"/></svg>`,
+  polygon: `${SVG_OPEN}<path d="M10.83 2.38a2 2 0 0 1 2.34 0l8 5.74a2 2 0 0 1 .73 2.25l-3.04 9.26a2 2 0 0 1-1.9 1.37H7.04a2 2 0 0 1-1.9-1.37L2.1 10.37a2 2 0 0 1 .73-2.25z"/></svg>`,
+};
+
+const statusHint = document.getElementById("status-hint")!;
 function renderRail() {
   rail.innerHTML = "";
   for (const t of TOOLS) {
     const b = document.createElement("button");
-    b.textContent = t.label;
+    b.innerHTML = `${RAIL_ICONS[t.id] ?? ""}<span>${t.label}</span>`;
     b.className = tools.active === t.id ? "active" : "";
+    b.setAttribute("aria-label", t.label);
     b.addEventListener("click", () => tools.setTool(t.id));
     rail.appendChild(b);
   }
-  status.textContent = `SCU7 · ${tools.active} — ${tools.hint}`;
+  statusHint.textContent = tools.hint; // the shell's .aergebra-hint chip (AergebraBoard.tsx:208)
 }
+// Status row string as the shell mounts it (AergebraBoard.tsx:211): "SCU7 · N receipts".
+const renderStatus = () => { status.textContent = `SCU7 · ${doc.receipts.length} receipts`; };
 tools.subscribe(renderRail);
-doc.subscribe(() => { status.textContent = `SCU7 · ${tools.active} — ${tools.hint}`; });
+doc.subscribe(renderStatus);
+doc.subscribe(renderRail);
 renderRail();
+renderStatus();
 
 // Station 9 — editable title, Save (.aergebra.json), Open (.aergebra.json or .scu), Export .scu.
 const titleInput = document.getElementById("doc-title") as HTMLInputElement;
@@ -135,16 +153,25 @@ document.getElementById("btn-export-scu")!.addEventListener("click", () => {
   downloadText(`${sanitizeFilename(name)}.scu`, doc.serializeScu(groupId ?? undefined));
 });
 
-const fileOpen = document.getElementById("file-open") as HTMLInputElement;
-document.getElementById("btn-open")!.addEventListener("click", () => fileOpen.click());
-fileOpen.addEventListener("change", async () => {
-  const file = fileOpen.files?.[0];
-  fileOpen.value = "";
+// One Import verb, as the shell has it (page.tsx:1398-1399): the file's extension decides whether it's
+// a document to open, an image to underlay, or a .ggb construction to import.
+const fileImport = document.getElementById("file-import") as HTMLInputElement;
+document.getElementById("btn-import")!.addEventListener("click", () => fileImport.click());
+fileImport.addEventListener("change", async () => {
+  const file = fileImport.files?.[0];
+  fileImport.value = "";
   if (!file) return;
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".ggb")) return importGgbFile(file);
+  if (name.endsWith(".json") || name.endsWith(".scu")) return openDocumentFile(file);
+  return importImageFile(file);
+});
+
+async function openDocumentFile(file: File) {
   const text = await file.text();
   const result = toolApi.load(text); // same façade a typed load(...) or an agent would use
   if (!result.ok) alert(`Aergebra: could not open "${file.name}" — ${result.error}`);
-});
+}
 
 // Station 10 — SVG import/export. Export serializes the live board's own SVG root; import places
 // the file as a movable background image object, self-contained as a data: URL (no external ref).
@@ -177,12 +204,7 @@ function svgAspect(svgText: string): number {
   return 1;
 }
 
-const fileImportSvg = document.getElementById("file-import-svg") as HTMLInputElement;
-document.getElementById("btn-import-svg")!.addEventListener("click", () => fileImportSvg.click());
-fileImportSvg.addEventListener("change", async () => {
-  const file = fileImportSvg.files?.[0];
-  fileImportSvg.value = "";
-  if (!file) return;
+async function importImageFile(file: File) {
   const width = 8;
   if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) {
     const text = await file.text();
@@ -206,16 +228,11 @@ fileImportSvg.addEventListener("change", async () => {
   });
   const height = width * aspect;
   doc.createImage(dataUrl, { x: -width / 2, y: height / 2, width, height });
-});
+}
 
 // Station 11 — real .ggb construction import: real points/segments/circles/polygons in the
 // Inspector, never a thumbnail. Unsupported elements are skipped and receipted, never invented.
-const fileImportGgb = document.getElementById("file-import-ggb") as HTMLInputElement;
-document.getElementById("btn-import-ggb")!.addEventListener("click", () => fileImportGgb.click());
-fileImportGgb.addEventListener("change", async () => {
-  const file = fileImportGgb.files?.[0];
-  fileImportGgb.value = "";
-  if (!file) return;
+async function importGgbFile(file: File) {
   try {
     const summary = await importGgb(doc, file);
     const skippedNote = summary.skipped.length ? `; skipped ${summary.skipped.length} (see receipts)` : "";
@@ -223,7 +240,7 @@ fileImportGgb.addEventListener("change", async () => {
   } catch (err) {
     alert(`Aergebra: could not import "${file.name}" — ${(err as Error).message}`);
   }
-});
+}
 
 // Station 13 — the bottom bar becomes a command line: the SAME window.Aergebra calls, typed.
 const cmdInput = document.getElementById("cmdline-input") as HTMLInputElement;
