@@ -1,6 +1,6 @@
 // Station 2 — JSXGraph in the canvas. The board is a PROJECTION of the model, never the truth.
 import JXG from "jsxgraph";
-import type { AergebraDoc, AerObject } from "./model";
+import type { AergebraDoc, AerObject, AerState } from "./model";
 
 const STYLE = {
   point: { size: 3, strokeColor: "#e7e9f0", fillColor: "#0a0b0d", label: { strokeColor: "#8b8fa3", fontSize: 12 } },
@@ -11,6 +11,15 @@ const STYLE = {
 };
 
 const HIGHLIGHT = "#7b7ff2";
+
+// Colour canon (Andrea, ratified — SCU433/438-440). Default (no aerState) is the STYLE.* colours
+// above, untouched. charcoal reuses the existing at-rest gray family already used for frames.
+const STATE_COLORS: Record<AerState, string> = {
+  charcoal: "#4a4c58",
+  brown: "#8b5e34",
+  orange: "#e8a13c",
+  teal: "#2bb5a0",
+};
 
 export class BoardView {
   board: JXG.Board;
@@ -81,9 +90,14 @@ export class BoardView {
             const [x, y] = obj.coords;
             if (p.X() !== x || p.Y() !== y) p.setPosition(JXG.COORDS_BY_USER, obj.coords);
           }
+          // Highlight wins while active — the state colour is only reasserted once
+          // clearHighlightObjects() runs, so a live highlight is never fought over.
+          if (!this.highlighted.has(obj.id)) this.applyBaseStyle(obj, existing);
           continue;
         }
-        this.drawn.set(obj.id, this.draw(obj));
+        const el = this.draw(obj);
+        this.applyBaseStyle(obj, el);
+        this.drawn.set(obj.id, el);
       }
       this.syncFrames();
       this.board.update();
@@ -175,6 +189,9 @@ export class BoardView {
   }
 
   // Station 6 — a group is a projection over existing elements: highlight is a style toggle, never a new species.
+  // Colour canon note: highlight touches strokeColor/fillColor same as before — it wins outright
+  // while active. Polygon highlight is the fill (as it always was); a polygon's state colour lives
+  // on its border, so the two never actually collide on screen.
   highlightObjects(ids: string[]) {
     this.clearHighlightObjects();
     for (const id of ids) {
@@ -189,17 +206,46 @@ export class BoardView {
     this.board.update();
   }
 
+  // Restores each element to its colour-canon state (or default styling if no state is set) —
+  // never to a hardcoded base, so a highlighted brown segment comes back brown, not default.
   clearHighlightObjects() {
     for (const id of this.highlighted) {
       const obj = this.doc.get(id);
       const el = this.drawn.get(id);
       if (!obj || !el) continue;
-      if (obj.type === "point") el.setAttribute({ strokeColor: STYLE.point.strokeColor, fillColor: STYLE.point.fillColor });
-      else if (obj.type === "polygon") el.setAttribute({ fillColor: STYLE.polygon.fillColor, fillOpacity: STYLE.polygon.fillOpacity });
-      else if (obj.type === "segment") el.setAttribute({ strokeColor: STYLE.line.strokeColor, strokeWidth: STYLE.line.strokeWidth });
-      else if (obj.type === "circle") el.setAttribute({ strokeColor: STYLE.circle.strokeColor, strokeWidth: STYLE.circle.strokeWidth });
+      this.applyBaseStyle(obj, el);
+      if (obj.type === "segment") el.setAttribute({ strokeWidth: STYLE.line.strokeWidth });
+      else if (obj.type === "circle") el.setAttribute({ strokeWidth: STYLE.circle.strokeWidth });
     }
     this.highlighted.clear();
     this.board.update();
+  }
+
+  // Colour canon (Andrea, ratified — SCU433/438-440): applies the object's aerState colour, or
+  // the untouched default STYLE.* colour when no state is set. Segments/circles: strokeColor.
+  // Polygons: the BORDER strokeColor (fill stays the separate highlight channel, station 6).
+  // Points: strokeColor + fillColor together — the indicator is one solid dot of colour.
+  private applyBaseStyle(obj: AerObject, el: JXG.GeometryElement) {
+    const stateColor = obj.aerState ? STATE_COLORS[obj.aerState] : null;
+    switch (obj.type) {
+      case "point":
+        el.setAttribute({
+          strokeColor: stateColor ?? STYLE.point.strokeColor,
+          fillColor: stateColor ?? STYLE.point.fillColor,
+        });
+        break;
+      case "segment":
+        el.setAttribute({ strokeColor: stateColor ?? STYLE.line.strokeColor });
+        break;
+      case "circle":
+        el.setAttribute({ strokeColor: stateColor ?? STYLE.circle.strokeColor });
+        break;
+      case "polygon": {
+        const color = stateColor ?? STYLE.polygon.borders.strokeColor;
+        const poly = el as unknown as { borders?: JXG.GeometryElement[] };
+        (poly.borders ?? []).forEach((b) => b.setAttribute({ strokeColor: color }));
+        break;
+      }
+    }
   }
 }

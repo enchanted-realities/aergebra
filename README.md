@@ -50,6 +50,7 @@ window.Aergebra.createCircle("A", "B");
 window.Aergebra.createPolygon("A", "B", "C");
 window.Aergebra.group("A", "B");
 window.Aergebra.setMeaning("A", "launch point");
+window.Aergebra.setState("seg1", "brown");  // colour canon — track/indicator state; see below
 window.Aergebra.frame("grp1");
 window.Aergebra.highlight("A");   // light up a station — the superorganism must SHOW who's live
 window.Aergebra.clearHighlight(); // hand off before lighting the next one
@@ -73,6 +74,25 @@ specialists, and the geometry must show which node is live. Select a group in th
 "Walk" button appears alongside Frame; one tap steps through the group's members in order,
 lighting each one up and handing off to the next — the same `highlight`/`clearHighlight` an
 outside agent would call directly to show its own progress through a mission.
+
+## The colour canon (ruled, no red)
+
+`setState(name, state)` — `state` is `"charcoal"`, `"brown"`, `"orange"`, `"teal"`, or `null` to
+clear. Two axes, never conflated: TRACK (segment/circle/polygon border — the road) vs
+INDICATOR/driver (point — the actor). Colour never judges outcome — a clean NO rests charcoal
+same as a clean YES.
+
+- `charcoal` — at rest. Any object.
+- `brown` — TRACK ONLY: resting but muddied, undrivable. Rejected on a point.
+- `orange` — where the hold sits: on a track, road ready/reserved; on a point, the driver IS the
+  brake (deliberate hold).
+- `teal` — the axis that's free and willing: on a point, ready to go; on a track, ONLY as the
+  held-reserved swap (track teal + point orange = everything ready, parked on purpose).
+- No state set = default styling, untouched.
+
+Every change receipts (action `"state"`). An illegal combination (brown on a point) comes back
+`{ ok: false, error: "..." }`, never a silent no-op. The Inspector shows the state as a plain text
+tag next to a selected row (e.g. `· brown`) — no colour swatches or pickers.
 
 ## The Aerth format family
 

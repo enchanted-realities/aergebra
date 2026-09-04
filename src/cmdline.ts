@@ -49,7 +49,7 @@ function parseCommand(line: string): ParsedCommand | null {
 
 const METHOD_NAMES = new Set([
   "createPoint", "createSegment", "createCircle", "createPolygon",
-  "group", "setMeaning", "frame", "highlight", "clearHighlight",
+  "group", "setMeaning", "setState", "frame", "highlight", "clearHighlight",
   "getAlgebra", "getReceipts", "load", "serialize",
 ]);
 

@@ -5,6 +5,16 @@
 
 export type AerType = "point" | "segment" | "circle" | "polygon";
 
+// Colour canon (Andrea, ratified — SCU433/438-440): two axes, never conflated. TRACK
+// (segment/circle/polygon — the road) vs INDICATOR/driver (point — the actor). Colour never
+// judges outcome. charcoal = at rest (any object). brown = TRACK ONLY, resting but muddied —
+// blocked by an open chamber, undrivable. orange = where the hold/readiness sits: on a track it
+// means road ready/reserved, on a point it means the driver IS the brake (deliberate hold).
+// teal = the axis that's free and willing: on a point, ready to go; on a track, ONLY as the
+// held-reserved swap (track teal + point orange = everything ready, parked on purpose). No red,
+// ever — colour is never a verdict.
+export type AerState = "charcoal" | "brown" | "orange" | "teal";
+
 export interface AerObject {
   id: string;              // AER1, AER2… one sequence, everything numbered
   type: AerType;
@@ -12,6 +22,7 @@ export interface AerObject {
   parents: string[];       // ids of defining objects (never flattened)
   coords?: [number, number]; // free points only
   meaning: string | null;  // station 7 slot — present from birth
+  aerState?: AerState;      // colour-canon state; absent = default styling, untouched
   createdAt: string;
 }
 
@@ -122,6 +133,22 @@ export class AergebraDoc {
     if (!obj) return;
     obj.meaning = meaning;
     this.receipt("meaning", { id, meaning });
+  }
+
+  // Colour canon — legality is the only judgment made here: brown is TRACK ONLY (a point can
+  // never be "muddied", only the road it can't drive), everything else (charcoal, orange, teal)
+  // is legal on both axes — teal on a track is exactly the held-reserved swap the canon names.
+  // Throws on an illegal combination rather than silently no-op'ing, so a caller (toolapi) can
+  // surface a clear rejection; a valid change always receipts, even clearing back to null.
+  setState(id: string, state: AerState | null) {
+    const obj = this.objects.find((o) => o.id === id);
+    if (!obj) throw new Error(`Unknown object: ${id}`);
+    if (state === "brown" && obj.type === "point") {
+      throw new Error(`brown is track-only — rejected for point "${obj.name}" (${obj.id})`);
+    }
+    if (state === null) delete obj.aerState;
+    else obj.aerState = state;
+    this.receipt("state", { id, state });
   }
 
   get(id: string): AerObject | undefined {

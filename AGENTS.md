@@ -25,6 +25,7 @@ interface AergebraToolApi {
   createPolygon(...vertices: string[]): ApiResult<{ id: string; name: string }>;
   group(...names: string[]): ApiResult<{ id: string; name: string }>;
   setMeaning(name: string, meaning?: string | null): ApiResult<{ id: string; meaning: string | null }>;
+  setState(name: string, state?: "charcoal" | "brown" | "orange" | "teal" | null): ApiResult<{ id: string; aerState: string | null }>;
   frame(groupName: string): ApiResult<{ id: string; frameOf: string }>;
   highlight(...names: string[]): ApiResult<{ count: number }>;  // light up stations while work happens
   clearHighlight(): ApiResult<{ cleared: true }>;
@@ -43,6 +44,7 @@ window.Aergebra.createPoint(-2, -3);      // { ok: true, result: { id: "AER2", n
 window.Aergebra.createSegment("A", "B");  // { ok: true, result: { id: "AER3", name: "seg1" } }
 window.Aergebra.group("A", "B");          // { ok: true, result: { id: "GRP1", name: "grp1" } }
 window.Aergebra.setMeaning("A", "launch point");
+window.Aergebra.setState("seg1", "brown");  // colour canon — track/indicator state
 window.Aergebra.frame("grp1");
 window.Aergebra.highlight("A");           // light up a station while work happens on it
 window.Aergebra.clearHighlight();         // hand off — clear before lighting the next one
@@ -103,3 +105,13 @@ seam it would attach to, kept deliberately basic until that lands.
   working through a group's members one at a time should `highlight(name)` the one it's on and
   `clearHighlight()` before moving to the next — the same hand-off the Inspector's Walk button
   runs when a human taps it on a selected group.
+- `setState` is the colour canon (Andrea, ratified — SCU433/438-440), and it DOES receipt (action
+  `"state"`) — unlike highlight, this is a durable fact about the object, not a transient "who's
+  live right now" marker. Two axes, never conflated: TRACK (segment/circle/polygon border) is the
+  road; INDICATOR (point) is the driver. States: `charcoal` (at rest, any object — never a
+  judgment of outcome), `brown` (TRACK ONLY — undrivable; rejected with an error on a point),
+  `orange` (the hold: road ready/reserved on a track, the driver-as-brake on a point), `teal` (free
+  and willing: ready-to-go on a point; on a track ONLY as the held-reserved swap, paired with an
+  orange point). Pass `null` to clear back to default styling. There is no red, and no fifth
+  colour — do not invent one. A live `highlight` still wins visually while active; the state
+  colour reasserts itself the moment `clearHighlight()` runs.

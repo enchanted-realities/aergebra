@@ -146,7 +146,7 @@ export class Inspector {
     wrap.className = "row-wrap" + (nested ? " nested" : "");
     const row = document.createElement("button");
     row.className = "obj" + (this.selected.has(id) ? " selected" : "");
-    row.innerHTML = `${this.doc.definitionOf(obj)} <em>· ${obj.id}${obj.meaning ? " · " + obj.meaning : ""}</em>`;
+    row.innerHTML = `${this.doc.definitionOf(obj)} <em>· ${obj.id}${obj.meaning ? " · " + obj.meaning : ""}${obj.aerState ? " · " + obj.aerState : ""}</em>`;
     row.addEventListener("click", () => this.toggleSelect(id));
     row.addEventListener("dblclick", (e) => { e.stopPropagation(); this.startEditing(id); });
     wrap.appendChild(row);

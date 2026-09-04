@@ -1,8 +1,10 @@
 // Station 13 — a typed façade over the model: every call — human-typed at the bottom command
 // line, or driven by an agent (station 14) — goes through the SAME four methods the tools on the
 // rail use, so everything receipts. No chat, no network: the API is the point.
-import type { AergebraDoc } from "./model";
+import type { AergebraDoc, AerState } from "./model";
 import type { BoardView } from "./render";
+
+const STATE_NAMES: AerState[] = ["charcoal", "brown", "orange", "teal"];
 
 export type ApiResult<T> = { ok: true; result: T } | { ok: false; error: string };
 
@@ -30,6 +32,7 @@ export interface AergebraToolApi {
   createPolygon(...vertices: string[]): ApiResult<{ id: string; name: string }>;
   group(...names: string[]): ApiResult<{ id: string; name: string }>;
   setMeaning(name: string, meaning?: string | null): ApiResult<{ id: string; meaning: string | null }>;
+  setState(name: string, state?: AerState | null): ApiResult<{ id: string; aerState: AerState | null }>;
   frame(groupName: string): ApiResult<{ id: string; frameOf: string }>;
   highlight(...names: string[]): ApiResult<{ count: number }>;
   clearHighlight(): ApiResult<{ cleared: true }>;
@@ -94,6 +97,25 @@ export function createToolApi(doc: AergebraDoc, view: BoardView): AergebraToolAp
         return ok({ id: groupId, meaning: meaning ?? null });
       }
       return fail(`Unknown object or group: ${name}`);
+    },
+
+    // Colour canon (Andrea, ratified — SCU433/438-440). state is a name or null to clear; legality
+    // (brown is track-only) is enforced by the model, which throws — caught here and surfaced as
+    // a plain fail() like every other rejection, never a thrown exception up to the caller.
+    setState(name, state) {
+      const objId = resolveObjectId(doc, name);
+      if (!objId) return fail(`Unknown object: ${name}`);
+      const normalized = state === undefined ? null : state;
+      if (normalized !== null && !STATE_NAMES.includes(normalized)) {
+        return fail(`Unknown state "${normalized}" — must be one of ${STATE_NAMES.join(", ")}, or null`);
+      }
+      try {
+        doc.setState(objId, normalized);
+      } catch (err) {
+        return fail((err as Error).message);
+      }
+      const obj = doc.get(objId)!;
+      return ok({ id: objId, aerState: obj.aerState ?? null });
     },
 
     frame(groupName) {
