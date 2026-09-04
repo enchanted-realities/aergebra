@@ -15,14 +15,22 @@ function fail(error: string): ApiResult<never> {
   return { ok: false, error };
 }
 
-/** Resolves a point/object/group by its AER/GRP id, or by the human name shown in the Inspector. */
+/** Resolves a point/object/group by its AER/GRP id, by the name shown in the Inspector, or by its
+ *  MEANING — the label a human actually sees on the board ("Table 2"), which is how an agent should
+ *  be able to refer to it. Meaning match is exact, then case-insensitive. */
 function resolveObjectId(doc: AergebraDoc, ref: string): string | null {
   if (doc.get(ref)) return ref;
-  return doc.objects.find((o) => o.name === ref)?.id ?? null;
+  const byName = doc.objects.find((o) => o.name === ref);
+  if (byName) return byName.id;
+  const byMeaning = doc.objects.find((o) => o.meaning === ref)
+    ?? doc.objects.find((o) => o.meaning?.toLowerCase() === ref.toLowerCase());
+  return byMeaning?.id ?? null;
 }
 function resolveGroupId(doc: AergebraDoc, ref: string): string | null {
   if (doc.groups.some((g) => g.id === ref)) return ref;
-  return doc.groups.find((g) => g.name === ref)?.id ?? null;
+  const byName = doc.groups.find((g) => g.name === ref);
+  if (byName) return byName.id;
+  return doc.groups.find((g) => g.meaning === ref)?.id ?? null;
 }
 
 export interface AergebraToolApi {
