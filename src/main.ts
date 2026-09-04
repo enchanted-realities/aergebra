@@ -64,6 +64,15 @@ if (autosaved) {
   } catch (err) {
     console.warn("Aergebra: autosave restore failed", err);
   }
+} else {
+  // First visit: open on the demo mission instead of a blank board, through the same load(...)
+  // any agent or Open click uses. A failed fetch just leaves the empty board — never blocks boot.
+  fetch(`${import.meta.env.BASE_URL}demo/scu65-mission.aergebra.json`)
+    .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+    .then((json) => {
+      if (!localStorage.getItem(AUTOSAVE_KEY) && doc.objects.length === 0) toolApi.load(json);
+    })
+    .catch((err) => console.warn("Aergebra: demo load skipped", err));
 }
 doc.subscribe(() => localStorage.setItem(AUTOSAVE_KEY, doc.serialize()));
 

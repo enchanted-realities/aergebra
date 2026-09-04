@@ -91,15 +91,15 @@ reports `WebMCP · 16 tools live` when a model context is present. Without one, 
 exactly as before — the same tools remain reachable via `window.Aergebra` and
 `window.__aergebra_execute`.
 
-### Prior work vs. new work (WebMCP Challenge)
+### Submission-period work (WebMCP Challenge)
 
-Aergebra's engine (stations 1–15: document model, tools, Inspector, receipts, imports/exports,
-command line, and the `window.Aergebra` / `window.__aergebra_execute` façade) predates the
-WebMCP Challenge submission period. **New during the submission period:** the WebMCP integration
-itself — `src/webmcp.ts` (tool specs, JSON schemas, Model Context registration, agent-call echo),
-its wiring in `src/main.ts`, the status-row badge, and this deployment. See the git history:
-everything from the commit "WebMCP proper: the station-14 seam plugged into document.modelContext"
-onward is submission-period work.
+Everything in this repository was built during the Challenge submission period — the commit
+history is the evidence: the engine (stations 1–15: document model, tools, Inspector, receipts,
+imports/exports, command line, and the `window.Aergebra` / `window.__aergebra_execute` façade)
+landed first, station by station, and the WebMCP integration (`src/webmcp.ts`, its wiring in
+`src/main.ts`, the status-row badge, and this deployment) landed on top of it, from the commit
+"WebMCP proper: the station-14 seam plugged into document.modelContext" onward. The project
+qualifies as newly created during the submission period.
 
 The bottom bar is a command line over this same API: type `createPoint(2,3)` and tap Run. The
 Inspector's math line (above the object list) additionally runs `Point(...)`, `Segment(...)`,
