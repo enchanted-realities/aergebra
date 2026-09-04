@@ -62,8 +62,44 @@ window.Aergebra.load(json);       // replaces the document; hands back a fresh b
 
 Every method returns `{ ok, result }` or `{ ok: false, error }` and never throws. For a driving
 agent that would rather send one call shape, `window.__aergebra_execute({ tool, args })` dispatches
-to the same methods — see **AGENTS.md** for the full contract; it's the WebMCP-shaped seam a real
-WebMCP transport would attach to later.
+to the same methods — see **AGENTS.md** for the full contract. That seam is now plugged into the
+real thing — see **WebMCP** below.
+
+## WebMCP
+
+The page registers **16 tools** with the browser's Web Model Context
+(`document.modelContext.registerTool(...)`, with a `navigator.modelContext` fallback and retries
+for late-injected contexts) — the [W3C Web Model Context proposal](https://github.com/webmachinelearning/webmcp).
+An agent in a WebMCP-capable browser gets the full construction kit: `aergebra_create_point`,
+`aergebra_create_segment`, `aergebra_create_circle`, `aergebra_create_polygon`,
+`aergebra_group_objects`, `aergebra_set_meaning`, `aergebra_set_state`, `aergebra_frame_group`,
+`aergebra_highlight`, `aergebra_clear_highlight`, `aergebra_get_algebra`, `aergebra_get_view`,
+`aergebra_get_receipts`, `aergebra_fit_view`, `aergebra_load_document`,
+`aergebra_serialize_document`.
+
+The point of it: **agents and humans share live geometry instead of screenshots.** The agent
+reads the board as data (`get_algebra`, `get_view` — never pixels), builds on the same board the
+human is touching, and *points* (`highlight`) instead of describing locations in prose. Both
+kinds of hands go through the same façade, so every action — human tap or agent call — lands on
+the same receipt line, and agent calls echo live in the bottom command-line output. The colour
+canon is enforced at the boundary: an agent asking for a colour outside the canon is refused
+with the rule quoted, not silently corrected.
+
+To try it: Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled (or any browser/agent
+that provides a model context, e.g. ChatGPT's in-app browser). The badge in the bottom status row
+reports `WebMCP · 16 tools live` when a model context is present. Without one, the page runs
+exactly as before — the same tools remain reachable via `window.Aergebra` and
+`window.__aergebra_execute`.
+
+### Prior work vs. new work (WebMCP Challenge)
+
+Aergebra's engine (stations 1–15: document model, tools, Inspector, receipts, imports/exports,
+command line, and the `window.Aergebra` / `window.__aergebra_execute` façade) predates the
+WebMCP Challenge submission period. **New during the submission period:** the WebMCP integration
+itself — `src/webmcp.ts` (tool specs, JSON schemas, Model Context registration, agent-call echo),
+its wiring in `src/main.ts`, the status-row badge, and this deployment. See the git history:
+everything from the commit "WebMCP proper: the station-14 seam plugged into document.modelContext"
+onward is submission-period work.
 
 The bottom bar is a command line over this same API: type `createPoint(2,3)` and tap Run. The
 Inspector's math line (above the object list) additionally runs `Point(...)`, `Segment(...)`,
