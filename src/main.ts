@@ -76,7 +76,10 @@ if (autosaved) {
         if (!localStorage.getItem(AUTOSAVE_KEY) && doc.objects.length === 0) toolApi.load(json);
       })
       .catch((err) => console.warn("Aergebra: demo load skipped", err));
-  requestAnimationFrame(() => requestAnimationFrame(loadDemo));
+  // ?blank=1 skips the demo — an automation or a fresh workspace can ask for the empty board.
+  if (!new URLSearchParams(location.search).has("blank")) {
+    requestAnimationFrame(() => requestAnimationFrame(loadDemo));
+  }
 }
 doc.subscribe(() => localStorage.setItem(AUTOSAVE_KEY, doc.serialize()));
 
