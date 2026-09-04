@@ -1,0 +1,451 @@
+{
+  "format": "AERGEBRA_DOC_V1",
+  "title": "SCU65 — The Avengers Mission",
+  "objects": [
+    {
+      "id": "AER1",
+      "type": "point",
+      "name": "A",
+      "parents": [],
+      "coords": [
+        0,
+        6
+      ],
+      "meaning": "Breach",
+      "createdAt": "2026-09-03T17:40:34.691Z"
+    },
+    {
+      "id": "AER2",
+      "type": "point",
+      "name": "B",
+      "parents": [],
+      "coords": [
+        3.857,
+        4.596
+      ],
+      "meaning": "Response activation",
+      "createdAt": "2026-09-03T17:40:34.692Z"
+    },
+    {
+      "id": "AER3",
+      "type": "point",
+      "name": "C",
+      "parents": [],
+      "coords": [
+        5.909,
+        1.042
+      ],
+      "meaning": "Capability assembly",
+      "createdAt": "2026-09-03T17:40:34.694Z"
+    },
+    {
+      "id": "AER4",
+      "type": "point",
+      "name": "D",
+      "parents": [],
+      "coords": [
+        5.196,
+        -3
+      ],
+      "meaning": "Contact and capture",
+      "createdAt": "2026-09-03T17:40:34.695Z"
+    },
+    {
+      "id": "AER5",
+      "type": "point",
+      "name": "E",
+      "parents": [],
+      "coords": [
+        2.052,
+        -5.638
+      ],
+      "meaning": "Containment and diagnosis",
+      "createdAt": "2026-09-03T17:40:34.696Z"
+    },
+    {
+      "id": "AER6",
+      "type": "point",
+      "name": "F",
+      "parents": [],
+      "coords": [
+        -2.052,
+        -5.638
+      ],
+      "meaning": "Fracture and loss",
+      "createdAt": "2026-09-03T17:40:34.697Z"
+    },
+    {
+      "id": "AER7",
+      "type": "point",
+      "name": "G",
+      "parents": [],
+      "coords": [
+        -5.196,
+        -3
+      ],
+      "meaning": "Reassembly and pursuit",
+      "createdAt": "2026-09-03T17:40:34.698Z"
+    },
+    {
+      "id": "AER8",
+      "type": "point",
+      "name": "H",
+      "parents": [],
+      "coords": [
+        -5.909,
+        1.042
+      ],
+      "meaning": "Invasion response",
+      "createdAt": "2026-09-03T17:40:34.699Z"
+    },
+    {
+      "id": "AER9",
+      "type": "point",
+      "name": "I",
+      "parents": [],
+      "coords": [
+        -3.857,
+        4.596
+      ],
+      "meaning": "Settlement and handoff",
+      "createdAt": "2026-09-03T17:40:34.701Z"
+    },
+    {
+      "id": "AER10",
+      "type": "polygon",
+      "name": "poly1",
+      "parents": [
+        "AER1",
+        "AER2",
+        "AER3",
+        "AER4",
+        "AER5",
+        "AER6",
+        "AER7",
+        "AER8",
+        "AER9"
+      ],
+      "meaning": "SCU65 — The Avengers Mission: 9 stations, one nonagon",
+      "createdAt": "2026-09-03T17:40:34.703Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": "GRP1",
+      "name": "grp1",
+      "members": [
+        "AER1",
+        "AER2",
+        "AER3",
+        "AER4",
+        "AER5",
+        "AER6",
+        "AER7",
+        "AER8",
+        "AER9"
+      ],
+      "meaning": "SCU65 mission stations, in order",
+      "createdAt": "2026-09-03T17:40:34.707Z"
+    }
+  ],
+  "frames": [],
+  "images": [],
+  "receipts": [
+    {
+      "seq": 1,
+      "at": "2026-09-03T17:40:31.839Z",
+      "action": "open",
+      "details": {
+        "app": "aergebra",
+        "recipe": "SCU7",
+        "note": "document opened"
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-03T17:40:34.691Z",
+      "action": "create",
+      "details": {
+        "id": "AER1",
+        "type": "point",
+        "name": "A",
+        "parents": [],
+        "coords": [
+          0,
+          6
+        ]
+      }
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-03T17:40:34.692Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER1",
+        "meaning": "Breach"
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-03T17:40:34.692Z",
+      "action": "create",
+      "details": {
+        "id": "AER2",
+        "type": "point",
+        "name": "B",
+        "parents": [],
+        "coords": [
+          3.857,
+          4.596
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "at": "2026-09-03T17:40:34.693Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER2",
+        "meaning": "Response activation"
+      }
+    },
+    {
+      "seq": 6,
+      "at": "2026-09-03T17:40:34.694Z",
+      "action": "create",
+      "details": {
+        "id": "AER3",
+        "type": "point",
+        "name": "C",
+        "parents": [],
+        "coords": [
+          5.909,
+          1.042
+        ]
+      }
+    },
+    {
+      "seq": 7,
+      "at": "2026-09-03T17:40:34.694Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER3",
+        "meaning": "Capability assembly"
+      }
+    },
+    {
+      "seq": 8,
+      "at": "2026-09-03T17:40:34.695Z",
+      "action": "create",
+      "details": {
+        "id": "AER4",
+        "type": "point",
+        "name": "D",
+        "parents": [],
+        "coords": [
+          5.196,
+          -3
+        ]
+      }
+    },
+    {
+      "seq": 9,
+      "at": "2026-09-03T17:40:34.695Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER4",
+        "meaning": "Contact and capture"
+      }
+    },
+    {
+      "seq": 10,
+      "at": "2026-09-03T17:40:34.696Z",
+      "action": "create",
+      "details": {
+        "id": "AER5",
+        "type": "point",
+        "name": "E",
+        "parents": [],
+        "coords": [
+          2.052,
+          -5.638
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "at": "2026-09-03T17:40:34.697Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER5",
+        "meaning": "Containment and diagnosis"
+      }
+    },
+    {
+      "seq": 12,
+      "at": "2026-09-03T17:40:34.697Z",
+      "action": "create",
+      "details": {
+        "id": "AER6",
+        "type": "point",
+        "name": "F",
+        "parents": [],
+        "coords": [
+          -2.052,
+          -5.638
+        ]
+      }
+    },
+    {
+      "seq": 13,
+      "at": "2026-09-03T17:40:34.698Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER6",
+        "meaning": "Fracture and loss"
+      }
+    },
+    {
+      "seq": 14,
+      "at": "2026-09-03T17:40:34.698Z",
+      "action": "create",
+      "details": {
+        "id": "AER7",
+        "type": "point",
+        "name": "G",
+        "parents": [],
+        "coords": [
+          -5.196,
+          -3
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "at": "2026-09-03T17:40:34.699Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER7",
+        "meaning": "Reassembly and pursuit"
+      }
+    },
+    {
+      "seq": 16,
+      "at": "2026-09-03T17:40:34.699Z",
+      "action": "create",
+      "details": {
+        "id": "AER8",
+        "type": "point",
+        "name": "H",
+        "parents": [],
+        "coords": [
+          -5.909,
+          1.042
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "at": "2026-09-03T17:40:34.700Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER8",
+        "meaning": "Invasion response"
+      }
+    },
+    {
+      "seq": 18,
+      "at": "2026-09-03T17:40:34.701Z",
+      "action": "create",
+      "details": {
+        "id": "AER9",
+        "type": "point",
+        "name": "I",
+        "parents": [],
+        "coords": [
+          -3.857,
+          4.596
+        ]
+      }
+    },
+    {
+      "seq": 19,
+      "at": "2026-09-03T17:40:34.703Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER9",
+        "meaning": "Settlement and handoff"
+      }
+    },
+    {
+      "seq": 20,
+      "at": "2026-09-03T17:40:34.703Z",
+      "action": "create",
+      "details": {
+        "id": "AER10",
+        "type": "polygon",
+        "name": "poly1",
+        "parents": [
+          "AER1",
+          "AER2",
+          "AER3",
+          "AER4",
+          "AER5",
+          "AER6",
+          "AER7",
+          "AER8",
+          "AER9"
+        ]
+      }
+    },
+    {
+      "seq": 21,
+      "at": "2026-09-03T17:40:34.706Z",
+      "action": "meaning",
+      "details": {
+        "id": "AER10",
+        "meaning": "SCU65 — The Avengers Mission: 9 stations, one nonagon"
+      }
+    },
+    {
+      "seq": 22,
+      "at": "2026-09-03T17:40:34.707Z",
+      "action": "group",
+      "details": {
+        "id": "GRP1",
+        "name": "grp1",
+        "members": [
+          "AER1",
+          "AER2",
+          "AER3",
+          "AER4",
+          "AER5",
+          "AER6",
+          "AER7",
+          "AER8",
+          "AER9"
+        ]
+      }
+    },
+    {
+      "seq": 23,
+      "at": "2026-09-03T17:40:34.707Z",
+      "action": "meaning",
+      "details": {
+        "id": "GRP1",
+        "meaning": "SCU65 mission stations, in order"
+      }
+    }
+  ],
+  "counters": {
+    "seq": 23,
+    "nextId": 11,
+    "nextGroupId": 2,
+    "nextFrameId": 1,
+    "nextImageId": 1,
+    "names": {
+      "point": 9,
+      "polygon": 1
+    }
+  }
+}
