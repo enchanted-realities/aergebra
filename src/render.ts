@@ -37,6 +37,7 @@ export class BoardView {
   private initBoard(): JXG.Board {
     return JXG.JSXGraph.initBoard(this.containerId, {
       boundingbox: [-12, 8, 12, -8],
+      resize: { enabled: true, throttle: 200 }, // self-heal if the container was 0×0 at init
       axis: true,
       grid: false,
       showCopyright: false,
@@ -55,6 +56,11 @@ export class BoardView {
   // doc.load(...) so the doc's emit draws the restored state onto the new board.
   rebuild() {
     JXG.JSXGraph.freeBoard(this.board);
+    // JSXGraph leaves inline styles (notably `position: relative`) on the freed container,
+    // which override our CSS `position: absolute; inset: 0` — the emptied div then measures
+    // 0×0 and the new board is created with zero size (a black screen). Clear them so the
+    // container measures its CSS-laid-out size again before initBoard reads it.
+    document.getElementById(this.containerId)?.removeAttribute("style");
     this.drawn.clear();
     this.drawnFrames.clear();
     this.drawnImages.clear();

@@ -66,13 +66,17 @@ if (autosaved) {
   }
 } else {
   // First visit: open on the demo mission instead of a blank board, through the same load(...)
-  // any agent or Open click uses. A failed fetch just leaves the empty board — never blocks boot.
-  fetch(`${import.meta.env.BASE_URL}demo/scu65-mission.aergebra.json`)
-    .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-    .then((json) => {
-      if (!localStorage.getItem(AUTOSAVE_KEY) && doc.objects.length === 0) toolApi.load(json);
-    })
-    .catch((err) => console.warn("Aergebra: demo load skipped", err));
+  // any agent or Open click uses. Deferred past the first layout — a load's rebuild measures
+  // the board container, and before first paint it measures 0×0 (a black board). A failed
+  // fetch just leaves the empty board — never blocks boot.
+  const loadDemo = () =>
+    fetch(`${import.meta.env.BASE_URL}demo/scu65-mission.aergebra.json`)
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+      .then((json) => {
+        if (!localStorage.getItem(AUTOSAVE_KEY) && doc.objects.length === 0) toolApi.load(json);
+      })
+      .catch((err) => console.warn("Aergebra: demo load skipped", err));
+  requestAnimationFrame(() => requestAnimationFrame(loadDemo));
 }
 doc.subscribe(() => localStorage.setItem(AUTOSAVE_KEY, doc.serialize()));
 
