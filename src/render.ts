@@ -37,6 +37,7 @@ export class BoardView {
   private initBoard(): JXG.Board {
     return JXG.JSXGraph.initBoard(this.containerId, {
       boundingbox: [-12, 8, 12, -8],
+      keepaspectratio: true, // one unit is one unit in both axes — a circle is a circle, a 9-gon isn't squashed
       resize: { enabled: true, throttle: 200 }, // self-heal if the container was 0×0 at init
       axis: true,
       grid: false,
