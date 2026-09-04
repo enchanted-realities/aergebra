@@ -62,6 +62,38 @@ export class BoardView {
     this.board = this.initBoard();
   }
 
+  // Space law: take up space, never clip — and never at ant scale. Content is DATA (the doc's
+  // coords), so the fit is computed from the model, not from pixels.
+  fitToContent(padRatio = 0.2) {
+    const pts = this.doc.objects.filter((o) => o.type === "point" && o.coords);
+    if (!pts.length && !this.doc.images.length) return;
+    const xs = pts.map((p) => p.coords![0]);
+    const ys = pts.map((p) => p.coords![1]);
+    for (const img of this.doc.images) {
+      xs.push(img.x, img.x + img.width);
+      ys.push(img.y, img.y + img.height);
+    }
+    const xmin = Math.min(...xs), xmax = Math.max(...xs);
+    const ymin = Math.min(...ys), ymax = Math.max(...ys);
+    const pad = Math.max(xmax - xmin, ymax - ymin, 2) * padRatio;
+    this.board.setBoundingBox([xmin - pad, ymax + pad, xmax + pad, ymin - pad], true);
+  }
+
+  /** The view as data: board window, content bounds, occupancy — so an agent asks, never screenshots. */
+  viewInfo() {
+    const [x1, y1, x2, y2] = this.board.getBoundingBox();
+    const pts = this.doc.objects.filter((o) => o.type === "point" && o.coords);
+    const xs = pts.map((p) => p.coords![0]);
+    const ys = pts.map((p) => p.coords![1]);
+    const content = pts.length
+      ? { xmin: Math.min(...xs), xmax: Math.max(...xs), ymin: Math.min(...ys), ymax: Math.max(...ys) }
+      : null;
+    const occupancy = content
+      ? ((content.xmax - content.xmin) * (content.ymax - content.ymin)) / Math.abs((x2 - x1) * (y1 - y2))
+      : 0;
+    return { board: { xmin: x1, xmax: x2, ymin: y2, ymax: y1 }, content, occupancy };
+  }
+
   // Station 10 — export the live SVG root as a standalone, downloadable document.
   exportSvg(): string {
     const svg = document.getElementById(this.containerId)?.querySelector("svg");
@@ -89,6 +121,8 @@ export class BoardView {
             const p = existing as JXG.Point;
             const [x, y] = obj.coords;
             if (p.X() !== x || p.Y() !== y) p.setPosition(JXG.COORDS_BY_USER, obj.coords);
+            const label = obj.meaning ?? "";
+            if (p.getName() !== label) p.setAttribute({ name: label, withLabel: !!obj.meaning });
           }
           // Highlight wins while active — the state colour is only reasserted once
           // clearHighlightObjects() runs, so a live highlight is never fought over.
@@ -169,7 +203,13 @@ export class BoardView {
   private draw(obj: AerObject): JXG.GeometryElement {
     switch (obj.type) {
       case "point": {
-        const p = this.board.create("point", obj.coords ?? [0, 0], { name: obj.name, ...STYLE.point });
+        // Label law (Andrea): no alphabet on the board — a point shows its MEANING or nothing.
+        // The algebra panel still carries the minted name; the board is not the alphabet.
+        const p = this.board.create("point", obj.coords ?? [0, 0], {
+          name: obj.meaning ?? "",
+          withLabel: !!obj.meaning,
+          ...STYLE.point,
+        });
         p.on("drag", () => this.doc.movePoint(obj.id, [Number(p.X().toFixed(3)), Number(p.Y().toFixed(3))]));
         return p;
       }

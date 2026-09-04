@@ -38,6 +38,8 @@ export interface AergebraToolApi {
   clearHighlight(): ApiResult<{ cleared: true }>;
   getAlgebra(): string[];
   getReceipts(n?: number): unknown[];
+  fit(): ApiResult<{ fitted: true }>;
+  getView(): unknown;
   load(json: string): ApiResult<{ objects: number }>;
   serialize(): string;
 }
@@ -150,10 +152,21 @@ export function createToolApi(doc: AergebraDoc, view: BoardView): AergebraToolAp
       return doc.receipts.slice(-n);
     },
 
+    // Space law: the view is readable and settable as DATA — an agent asks getView(), never screenshots.
+    fit() {
+      view.fitToContent();
+      return ok({ fitted: true as const });
+    },
+
+    getView() {
+      return view.viewInfo();
+    },
+
     load(json) {
       try {
         view.rebuild(); // fresh board — same discipline as Open (station 9)
         doc.load(json);
+        view.fitToContent(); // never ant-scale: fit to what was loaded
         return ok({ objects: doc.objects.length });
       } catch (err) {
         return fail((err as Error).message);
