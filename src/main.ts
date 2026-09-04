@@ -176,10 +176,29 @@ fileImportSvg.addEventListener("change", async () => {
   const file = fileImportSvg.files?.[0];
   fileImportSvg.value = "";
   if (!file) return;
-  const text = await file.text();
   const width = 8;
-  const height = width * svgAspect(text);
-  doc.createImage(svgToDataUrl(text), { x: -width / 2, y: height / 2, width, height });
+  if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) {
+    const text = await file.text();
+    const height = width * svgAspect(text);
+    doc.createImage(svgToDataUrl(text), { x: -width / 2, y: height / 2, width, height });
+    return;
+  }
+  // Raster photo (png/jpeg/webp): same movable background image object, so geometry can be
+  // drawn OVER the photo — "this right here is the problem", pointed at, meant, receipted.
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+  const aspect = await new Promise<number>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth > 0 ? img.naturalHeight / img.naturalWidth : 1);
+    img.onerror = () => resolve(1);
+    img.src = dataUrl;
+  });
+  const height = width * aspect;
+  doc.createImage(dataUrl, { x: -width / 2, y: height / 2, width, height });
 });
 
 // Station 11 — real .ggb construction import: real points/segments/circles/polygons in the

@@ -21,7 +21,7 @@ of them.
 | 7 | Meaning first-class | done |
 | 8 | Footprints/frames | done |
 | 9 | Save Aergebra projects (+ Export .scu) | done |
-| 10 | SVG import/export | done |
+| 10 | SVG/photo import, SVG export | done |
 | 11 | Real .ggb construction import | done |
 | 12 | MathLive + Compute Engine | done |
 | 13 | Tool API + bottom command line | done |
