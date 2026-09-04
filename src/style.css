@@ -5,24 +5,26 @@
   --line: #23242b;
   --ink: #e7e9f0;
   --muted: #8b8fa3;
-  --accent: #7b7ff2;
+  --accent: #2bb5a0;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
-body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 #app { display: flex; flex-direction: column; height: 100vh; }
 
 /* Wraps onto more than one line rather than clipping once five buttons + a title don't fit 375px. */
 #topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
-#brand { font-weight: 800; letter-spacing: 0.2px; flex-shrink: 0; }
-#doc-title { color: var(--ink); background: none; border: 1px solid transparent; border-radius: 6px; font: inherit; padding: 6px 8px; min-height: 40px; min-width: 0; flex: 1 1 auto; max-width: 320px; }
+#brand { font-weight: 650; font-size: 16px; letter-spacing: -0.01em; flex-shrink: 0; }
+#doc-title { color: var(--ink); background: none; border: 1px solid transparent; border-radius: 6px; font: inherit; font-weight: 650; font-size: 15px; padding: 6px 8px; min-height: 40px; min-width: 0; flex: 1 1 auto; max-width: 320px; }
 #doc-title:hover, #doc-title:focus { border-color: var(--line); outline: none; }
 #topbar-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-#topbar-actions button { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; white-space: nowrap; }
-#topbar-actions button:hover { color: var(--ink); border-color: var(--accent); }
+#topbar-actions button { background: none; border: 0; border-radius: 9px; color: var(--muted); font: inherit; font-weight: 600; padding: 8px 14px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+#topbar-actions button:hover { color: var(--ink); background: #17181c; }
+.topbar-divider { width: 1px; height: 24px; background: var(--line); margin: 0 6px; flex-shrink: 0; }
+#topbar-actions #btn-save { background: var(--accent); color: var(--bg); border: 0; font-weight: 700; }
+#topbar-actions #btn-save:hover { background: var(--accent); color: var(--bg); filter: brightness(1.08); }
 
 #pitchline { padding: 6px 16px; background: var(--panel); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
-#pitchline code { color: var(--ink); font: 11px ui-monospace, Consolas, monospace; }
 #workspace { flex: 1; display: flex; min-height: 0; }
 
 /* Touch-friendly, never clips: rail and inspector shrink gracefully down to a 375px-wide finger-driven screen. */
@@ -31,20 +33,27 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -app
 #toolrail button:hover { color: var(--ink); }
 #toolrail button.active { color: var(--ink); border-color: var(--accent); background: #17181c; }
 
-#canvas-wrap { flex: 1; min-width: 0; position: relative; background: #000; }
+#canvas-wrap { flex: 1; min-width: 0; position: relative; background: var(--bg); }
 #board { position: absolute; inset: 0; }
+#state-legend { position: absolute; bottom: 10px; left: 10px; z-index: 40; display: flex; align-items: center; gap: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+#state-legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 4px 0 10px; vertical-align: baseline; }
+#state-legend .sw:first-child { margin-left: 0; }
+#state-legend .sw-charcoal { background: #4a4c58; }
+#state-legend .sw-brown { background: #8b5e34; }
+#state-legend .sw-orange { background: #e8a13c; }
+#state-legend .sw-teal { background: #2bb5a0; }
 
 #inspector { width: clamp(180px, 40vw, 320px); flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-#inspector h2 { margin: 0; padding: 12px 14px 8px; font-size: 14px; }
+#inspector h2 { margin: 0; padding: 12px 14px 8px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 /* Station 12 — the math line: Point/Segment/Circle/Polygon typed, or free math via Compute Engine. */
 #inspector .mathline { display: flex; gap: 6px; padding: 0 8px 8px; align-items: stretch; }
-#inspector .mathline-field { flex: 1; min-width: 0; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; --contains-highlight-background-color: #7b7ff255; }
-#inspector .mathline-run { flex-shrink: 0; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 0 14px; min-height: 40px; cursor: pointer; }
+#inspector .mathline-field { flex: 1; min-width: 0; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; --contains-highlight-background-color: #2bb5a055; }
+#inspector .mathline-run { flex-shrink: 0; background: var(--accent); border: 0; border-radius: 8px; color: var(--bg); font: inherit; font-weight: 700; padding: 0 14px; min-height: 40px; cursor: pointer; }
 #inspector .mathline-result { padding: 0 8px 8px; min-height: 18px; color: var(--muted); font: 12px ui-monospace, Consolas, monospace; word-break: break-word; }
-#inspector .mathline-result.error { color: #e0715a; }
+#inspector .mathline-result.error { color: #8b5e34; }
 #inspector .actions { padding: 0 8px; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
 #inspector .actions:has(button) { padding-bottom: 8px; }
-#inspector .group-btn { width: 100%; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 10px; min-height: 40px; cursor: pointer; }
+#inspector .group-btn { width: 100%; background: var(--accent); border: 0; border-radius: 8px; color: var(--bg); font: inherit; font-weight: 700; padding: 10px; min-height: 40px; cursor: pointer; }
 #inspector .frame-btn { background: none; border: 1px solid var(--accent); color: var(--accent); }
 #inspector .walk-btn { background: none; border: 1px solid var(--line); color: var(--muted); }
 #inspector .walk-btn:disabled { cursor: default; opacity: 0.7; }
@@ -65,11 +74,11 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -app
 /* Station 13 — the bottom bar is also a command line: the same window.Aergebra calls, typed. */
 #bottombar { padding: 7px 16px 10px; background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 #status-row { padding-bottom: 6px; display: flex; justify-content: space-between; gap: 12px; }
-#webmcp-badge { font: 12px ui-monospace, Consolas, monospace; white-space: nowrap; }
-#webmcp-badge.live { color: #14b8a6; } /* teal — free and willing, per the colour canon */
+#webmcp-badge { font: 12px ui-monospace, Consolas, monospace; white-space: nowrap; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+#webmcp-badge.live { color: #2bb5a0; border-color: #2bb5a0aa; } /* teal — free and willing; canon value, STATE_COLORS.teal */
 #cmdline-row { display: flex; align-items: stretch; gap: 6px; }
 #cmdline-prompt { flex-shrink: 0; align-self: center; color: var(--accent); font: 13px ui-monospace, Consolas, monospace; font-weight: 700; }
 #cmdline-input { flex: 1; min-width: 0; background: #17181c; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font: 13px ui-monospace, Consolas, monospace; padding: 0 10px; min-height: 40px; }
 #cmdline-input:focus { outline: none; border-color: var(--accent); }
-#cmdline-run { flex-shrink: 0; background: var(--accent); border: 0; border-radius: 8px; color: #fff; font: inherit; font-weight: 700; padding: 0 16px; min-height: 40px; cursor: pointer; }
+#cmdline-run { flex-shrink: 0; background: var(--accent); border: 0; border-radius: 8px; color: var(--bg); font: inherit; font-weight: 700; padding: 0 16px; min-height: 40px; cursor: pointer; }
 #cmdline-output { padding-top: 6px; color: var(--muted); font: 12px ui-monospace, Consolas, monospace; word-break: break-word; }

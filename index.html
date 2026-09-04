@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aergebra — live geometry for agents and humans</title>
   <meta name="description" content="Agents and humans sharing live geometry instead of screenshots. The page registers 16 WebMCP tools (document.modelContext) so an agent can construct, label, point, and read the board as data — on the same receipted board a human works." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%2314b8a6' stroke-width='3'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%232bb5a0' stroke-width='3'/%3E%3C/svg%3E" />
 </head>
 <body>
   <div id="app">
@@ -14,21 +14,28 @@
       <input id="doc-title" type="text" value="Untitled project" aria-label="Project title" />
       <div id="topbar-actions">
         <button id="btn-save">Save</button>
+        <span class="topbar-divider" aria-hidden="true"></span>
         <button id="btn-open">Open</button>
-        <button id="btn-export-scu">Export .scu</button>
+        <button id="btn-export-scu">Export SCU</button>
         <button id="btn-export-svg">Export SVG</button>
         <button id="btn-import-svg">Import image</button>
-        <button id="btn-import-ggb">Import .ggb</button>
+        <button id="btn-import-ggb">Import GGB</button>
         <input id="file-open" type="file" accept=".json,.aergebra.json,.scu" hidden />
         <input id="file-import-svg" type="file" accept=".svg,image/svg+xml,image/png,image/jpeg,image/webp" hidden />
         <input id="file-import-ggb" type="file" accept=".ggb" hidden />
       </div>
     </header>
-    <div id="pitchline">Agents and humans edit the same live geometry — not screenshots. Open in a WebMCP-capable browser (Chrome 149+ with <code>chrome://flags/#enable-webmcp-testing</code>, or ChatGPT's browser) and the agent gets 16 real tools on this board.</div>
+    <div id="pitchline">Agents and humans share one live board — not screenshots — through WebMCP.</div>
     <main id="workspace">
       <nav id="toolrail" aria-label="Creation tools"></nav>
       <section id="canvas-wrap">
         <div id="board"></div>
+        <div id="state-legend" aria-label="Colour meaning legend">
+          <i class="sw sw-charcoal" title="charcoal — at rest"></i>at rest
+          <i class="sw sw-brown" title="brown — blocked"></i>blocked
+          <i class="sw sw-orange" title="orange — ready"></i>ready
+          <i class="sw sw-teal" title="teal — willing"></i>willing
+        </div>
       </section>
       <aside id="inspector" aria-label="Inspector"></aside>
     </main>
